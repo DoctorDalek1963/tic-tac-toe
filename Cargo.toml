@@ -1,0 +1,8 @@
+[package]
+name = "tic-tac-toe"
+version = "0.1.0"
+edition = "2021"
+repository = "https://github.com/DoctorDalek1963/tic-tac-toe"
+license = "MIT"
+
+[dependencies]
