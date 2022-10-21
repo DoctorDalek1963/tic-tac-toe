@@ -18,10 +18,7 @@ impl TicTacToeApp {
 
         if self.board.cells[x][y].is_none() {
             self.board.cells[x][y] = Some(self.active_shape);
-            self.active_shape = match self.active_shape {
-                CellState::X => CellState::O,
-                CellState::O => CellState::X,
-            };
+            self.active_shape = self.active_shape.other();
         }
     }
 }
@@ -29,7 +26,7 @@ impl TicTacToeApp {
 impl TicTacToeApp {
     pub fn new(active_shape: CellState) -> Self {
         Self {
-            board: Board::new(),
+            board: Board::default(),
             active_shape,
         }
     }
@@ -81,6 +78,8 @@ impl eframe::App for TicTacToeApp {
                         .clicked()
                     {
                         self.update_cell(x, y);
+                        let (x, y) = self.board.generate_ai_move();
+                        self.update_cell(x, y);
                     };
                 }
             }
@@ -116,7 +115,7 @@ mod tests {
 
         for moves_map in [map_1, map_2] {
             let mut app = TicTacToeApp::new(CellState::X);
-            assert_eq!(app.board, Board::new());
+            assert_eq!(app.board, Board::default());
 
             for ((x, y), board) in moves_map {
                 app.update_cell(x, y);

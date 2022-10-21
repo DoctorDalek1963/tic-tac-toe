@@ -54,6 +54,7 @@ macro_rules! make_board {
                     $crate::test_utils::MockCellState::$i.into(),
                 ],
             ],
+            ai_shape: $crate::board::CellState::O,
         }
     }};
 }
