@@ -68,7 +68,7 @@ fn get_board_states() -> Vec<Board> {
     ]
 }
 
-fn benchmark_eval(c: &mut Criterion) {
+fn benchmark_eval_and_move(c: &mut Criterion) {
     let board_states = get_board_states();
 
     c.bench_function("evaluate_position", |b| {
@@ -79,10 +79,6 @@ fn benchmark_eval(c: &mut Criterion) {
             }
         });
     });
-}
-
-fn benchmark_generate_ai_move(c: &mut Criterion) {
-    let board_states = get_board_states();
 
     c.bench_function("generate_ai_move", |b| {
         b.iter(|| {
@@ -93,5 +89,5 @@ fn benchmark_generate_ai_move(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, benchmark_eval, benchmark_generate_ai_move);
+criterion_group!(benches, benchmark_eval_and_move);
 criterion_main!(benches);
