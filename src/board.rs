@@ -1,5 +1,6 @@
 //! This module handles the board and the AI player.
 
+use rayon::prelude::*;
 use thiserror::Error;
 
 /// An enum for the shape of a cell on the [`Board`].
@@ -160,7 +161,7 @@ impl Board {
             Err(WinnerError::NoWinnerYet) => {
                 let empty_cells = self.empty_cells();
 
-                let map = empty_cells.iter().map(|&(x, y)| -> i8 {
+                let map = empty_cells.par_iter().map(|&(x, y)| -> i8 {
                     let mut new_board = self.clone();
                     new_board.cells[x][y] = Some(shape_to_play);
                     // Further moves after this one are considered less important than creating or
@@ -190,7 +191,7 @@ impl Board {
         }
 
         self.empty_cells()
-            .iter()
+            .par_iter()
             .map(|&(x, y)| -> ((usize, usize), i8) {
                 let mut new_board = self.clone();
                 new_board.cells[x][y] = Some(self.ai_shape);
