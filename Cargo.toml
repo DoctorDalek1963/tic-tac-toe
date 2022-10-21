@@ -5,6 +5,17 @@ edition = "2021"
 repository = "https://github.com/DoctorDalek1963/tic-tac-toe"
 license = "MIT"
 
+[lib]
+name = "tictactoe"
+path = "src/lib.rs"
+
 [dependencies]
 eframe = "0.19.0"
 thiserror = "1.0.37"
+
+[dev-dependencies]
+criterion = "0.4.0"
+
+[[bench]]
+name = "eval_and_minimax"
+harness = false
