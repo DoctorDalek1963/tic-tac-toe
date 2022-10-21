@@ -166,7 +166,7 @@ impl Board {
                     new_board.cells[x][y] = Some(shape_to_play);
                     // Further moves after this one are considered less important than creating or
                     // blocking a win in the short term
-                    (0.9 * Self::evaluate_position(&new_board, shape_to_play.other()) as f32) as i8
+                    (0.9 * new_board.evaluate_position(shape_to_play.other()) as f32) as i8
                 });
 
                 if shape_to_play == self.ai_shape {
@@ -195,10 +195,7 @@ impl Board {
             .map(|&(x, y)| -> ((usize, usize), i8) {
                 let mut new_board = self.clone();
                 new_board.cells[x][y] = Some(self.ai_shape);
-                (
-                    (x, y),
-                    Self::evaluate_position(&new_board, self.ai_shape.other()),
-                )
+                ((x, y), new_board.evaluate_position(self.ai_shape.other()))
             })
             .max_by_key(|x| x.1)
             .unwrap()
