@@ -1,16 +1,26 @@
-use crate::board::{Board, CellState};
+//! This module handles the `egui` interface to the game.
+
+use crate::board::{Board, CellShape};
 use eframe::{
     egui::{self, Rect},
     epaint::{Pos2, Vec2},
 };
 
+/// The struct to hold the state of the app.
 pub struct TicTacToeApp {
+    /// The actual board itself.
     board: Board,
-    active_shape: CellState,
+
+    /// The shape that will be used for the next cell to be placed.
+    ///
+    /// See [`update_cell`](TicTacToeApp::update_cell).
+    active_shape: CellShape,
 }
 
 impl TicTacToeApp {
     /// Update the board to reflect a cell being clicked.
+    ///
+    /// This method uses [`active_shape`](TicTacToeApp::active_shape) as the shape to place in the cell.
     fn update_cell(&mut self, x: usize, y: usize) {
         if x > 2 || y > 2 {
             return;
@@ -24,28 +34,32 @@ impl TicTacToeApp {
 }
 
 impl TicTacToeApp {
-    pub fn new(active_shape: CellState) -> Self {
+    /// Create a new app with the given player shape (the player moves first).
+    pub fn new(player_shape: CellShape) -> Self {
         Self {
-            board: Board::default(),
-            active_shape,
+            board: Board::new(player_shape.other()),
+            active_shape: player_shape,
         }
     }
 }
 
 impl Default for TicTacToeApp {
+    /// Create a default board with the player using the `X` shape.
     fn default() -> Self {
-        Self::new(CellState::X)
+        Self::new(CellShape::X)
     }
 }
 
 impl eframe::App for TicTacToeApp {
+    /// Show the app itself.
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        fn get_string(x: Option<CellState>) -> String {
+        /// Get the string form of the given shape.
+        fn get_string(x: Option<CellShape>) -> String {
             match x {
                 None => "",
                 Some(state) => match state {
-                    CellState::X => "X",
-                    CellState::O => "O",
+                    CellShape::X => "X",
+                    CellShape::O => "O",
                 },
             }
             .to_string()
@@ -114,7 +128,7 @@ mod tests {
         ];
 
         for moves_map in [map_1, map_2] {
-            let mut app = TicTacToeApp::new(CellState::X);
+            let mut app = TicTacToeApp::new(CellShape::X);
             assert_eq!(app.board, Board::default());
 
             for ((x, y), board) in moves_map {

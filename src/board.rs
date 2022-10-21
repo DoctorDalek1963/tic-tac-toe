@@ -1,13 +1,16 @@
+//! This module handles the board and the AI player.
+
 use thiserror::Error;
 
-/// An enum for the state of a cell on the [`Board`].
+/// An enum for the shape of a cell on the [`Board`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub enum CellState {
+pub enum CellShape {
     X,
     O,
 }
 
-impl CellState {
+impl CellShape {
+    /// Return the opposite of the current shape.
     pub fn other(&self) -> Self {
         match self {
             Self::X => Self::O,
@@ -19,12 +22,18 @@ impl CellState {
 /// A possible error that could occur when trying to find a winner,
 #[derive(Debug, Error, PartialEq)]
 pub enum WinnerError {
+    /// Neither player has won, but the board is not full, so a win could occur.
     #[error("Neither player has won yet")]
     NoWinnerYet,
 
+    /// The board is full and neither player won.
     #[error("Board is full but no-one has won")]
     BoardFullNoWinner,
 
+    /// Both players have won.
+    ///
+    /// This state should never be achievable in normal play, but we need to handle the case where
+    /// multiple winning triplets are found in [`Board::get_winner`].
     #[error("Both players have won")]
     MultipleWinners,
 }
@@ -39,24 +48,27 @@ pub struct Board {
     /// (0, 1) | (1, 1) | (2, 1)
     /// ------------------------
     /// (0, 2) | (1, 2) | (2, 2)
-    pub cells: [[Option<CellState>; 3]; 3],
+    pub cells: [[Option<CellShape>; 3]; 3],
 
     /// This is the shape that the AI will play as.
     ///
     /// Board positions where this shape wins are considered good, and positions where the other
     /// shape wins are considered bad.
-    pub ai_shape: CellState,
+    pub ai_shape: CellShape,
 }
 
 impl Board {
     /// Create a new, empty board.
-    pub fn new(shape_to_maximise: CellState) -> Self {
+    pub fn new(shape_to_maximise: CellShape) -> Self {
         Self {
             cells: [[None; 3]; 3],
             ai_shape: shape_to_maximise,
         }
     }
 
+    /// Check if the board is full.
+    ///
+    /// This method does not check for a winner. See [`get_winner`](Board::get_winner).
     fn is_board_full(&self) -> bool {
         self.cells
             .iter()
@@ -67,8 +79,8 @@ impl Board {
     }
 
     /// Return the winner in the current board position, or a variant of [`WinnerError`] if there is no winner.
-    fn get_winner(&self) -> Result<CellState, WinnerError> {
-        let triplets: [[Option<CellState>; 3]; 8] = [
+    fn get_winner(&self) -> Result<CellShape, WinnerError> {
+        let triplets: [[Option<CellShape>; 3]; 8] = [
             [self.cells[0][0], self.cells[0][1], self.cells[0][2]], // Column 0
             [self.cells[1][0], self.cells[1][1], self.cells[1][2]], // Column 1
             [self.cells[2][0], self.cells[2][1], self.cells[2][2]], // Column 2
@@ -82,13 +94,13 @@ impl Board {
         let states = triplets
             .iter()
             .filter_map(
-                // Map the arrays into an Option<CellState> representing their win
+                // Map the arrays into an Option<CellShape> representing their win
                 |x| match x {
-                    [Some(CellState::X), Some(CellState::X), Some(CellState::X)] => {
-                        Some(CellState::X)
+                    [Some(CellShape::X), Some(CellShape::X), Some(CellShape::X)] => {
+                        Some(CellShape::X)
                     }
-                    [Some(CellState::O), Some(CellState::O), Some(CellState::O)] => {
-                        Some(CellState::O)
+                    [Some(CellShape::O), Some(CellShape::O), Some(CellShape::O)] => {
+                        Some(CellShape::O)
                     }
                     _ => None,
                 },
@@ -111,7 +123,7 @@ impl Board {
         }
     }
 
-    /// Get a vector of the coords of empty cells in the board.
+    /// Return a vector of the coordinates of empty cells in the board.
     ///
     /// This method searches columns before rows.
     fn empty_cells(&self) -> Vec<(usize, usize)> {
@@ -139,7 +151,7 @@ impl Board {
     /// iterate over all possible moves and evaluate each of them, swapping the shape for each
     /// recursion. We also multiple the result of the recursive call by 0.9. This means that
     /// creating or blocking a win in the short term is prioritised over long term play.
-    pub fn evaluate_position(&self, shape_to_play: CellState) -> i8 {
+    pub fn evaluate_position(&self, shape_to_play: CellShape) -> i8 {
         match self.get_winner() {
             Ok(x) if x == self.ai_shape => 100,
             Ok(x) if x == self.ai_shape.other() => -100,
@@ -194,8 +206,9 @@ impl Board {
 }
 
 impl Default for Board {
+    /// Return a board with [`O`](CellShape::O) as the default AI shape.
     fn default() -> Self {
-        Self::new(CellState::O)
+        Self::new(CellShape::O)
     }
 }
 
@@ -219,13 +232,13 @@ mod tests {
         //  |X|O
         //  |O|X
         let board = make_board!(X O X; E X O; E O X);
-        assert_eq!(board.get_winner(), Ok(CellState::X));
+        assert_eq!(board.get_winner(), Ok(CellShape::X));
 
         // O|X|O
         // X|O|X
         // O|X|X
         let board = make_board!(O X O; X O X; O X X);
-        assert_eq!(board.get_winner(), Ok(CellState::O));
+        assert_eq!(board.get_winner(), Ok(CellShape::O));
 
         // X|O|O
         // O|X|X
@@ -290,44 +303,44 @@ mod tests {
         // O| |X
         let board = make_board!(X O E; E X O; O E X);
         // Whoever plays in this position, it's bad because the player (X) has won
-        assert_eq!(board.evaluate_position(CellState::X), -100);
-        assert_eq!(board.evaluate_position(CellState::O), -100);
+        assert_eq!(board.evaluate_position(CellShape::X), -100);
+        assert_eq!(board.evaluate_position(CellShape::O), -100);
 
         // O|X|
         //  |O|X
         // X| |O
         let board = make_board!(O X E; E O X; X E O);
         // Whoever plays in this position, it's good because the AI (O) has won
-        assert_eq!(board.evaluate_position(CellState::X), 100);
-        assert_eq!(board.evaluate_position(CellState::O), 100);
+        assert_eq!(board.evaluate_position(CellShape::X), 100);
+        assert_eq!(board.evaluate_position(CellShape::O), 100);
 
         // X|O|
         // X|O|O
         // X|O|
         let board = make_board!(X O E; X O O; X O E);
         // Multiple winners is a draw
-        assert_eq!(board.evaluate_position(CellState::X), 0);
-        assert_eq!(board.evaluate_position(CellState::O), 0);
+        assert_eq!(board.evaluate_position(CellShape::X), 0);
+        assert_eq!(board.evaluate_position(CellShape::O), 0);
 
         // X|O|
         //  |X|O
         //  | |
         let board = make_board!(X O E; E X E; E E E);
-        assert_eq!(board.evaluate_position(CellState::X), -90);
+        assert_eq!(board.evaluate_position(CellShape::X), -90);
 
         // X|O|X
         // X|X|O
         // O| |O
         let board = make_board!(X O X; X X O; O E O);
-        assert_eq!(board.evaluate_position(CellState::X), 0);
-        assert_eq!(board.evaluate_position(CellState::O), 90);
+        assert_eq!(board.evaluate_position(CellShape::X), 0);
+        assert_eq!(board.evaluate_position(CellShape::O), 90);
 
         // X|O|X
         //  |X|O
         // O|X|O
         let board = make_board!(X O X; E X O; O X O);
-        assert_eq!(board.evaluate_position(CellState::X), 0);
-        assert_eq!(board.evaluate_position(CellState::O), 0);
+        assert_eq!(board.evaluate_position(CellShape::X), 0);
+        assert_eq!(board.evaluate_position(CellShape::O), 0);
     }
 
     #[test]

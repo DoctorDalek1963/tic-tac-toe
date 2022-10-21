@@ -1,17 +1,19 @@
-use crate::board::CellState;
+//! This module simply contains utilities to help with unit testing.
 
-pub(crate) enum MockCellState {
+use crate::board::CellShape;
+
+pub(crate) enum MockCellShape {
     X,
     O,
     E,
 }
 
-impl Into<Option<CellState>> for MockCellState {
-    fn into(self) -> Option<CellState> {
+impl Into<Option<CellShape>> for MockCellShape {
+    fn into(self) -> Option<CellShape> {
         match self {
-            MockCellState::X => Some(CellState::X),
-            MockCellState::O => Some(CellState::O),
-            MockCellState::E => None,
+            MockCellShape::X => Some(CellShape::X),
+            MockCellShape::O => Some(CellShape::O),
+            MockCellShape::E => None,
         }
     }
 }
@@ -39,22 +41,22 @@ macro_rules! make_board {
         $crate::board::Board {
             cells: [
                 [
-                    $crate::test_utils::MockCellState::$a.into(),
-                    $crate::test_utils::MockCellState::$d.into(),
-                    $crate::test_utils::MockCellState::$g.into(),
+                    $crate::test_utils::MockCellShape::$a.into(),
+                    $crate::test_utils::MockCellShape::$d.into(),
+                    $crate::test_utils::MockCellShape::$g.into(),
                 ],
                 [
-                    $crate::test_utils::MockCellState::$b.into(),
-                    $crate::test_utils::MockCellState::$e.into(),
-                    $crate::test_utils::MockCellState::$h.into(),
+                    $crate::test_utils::MockCellShape::$b.into(),
+                    $crate::test_utils::MockCellShape::$e.into(),
+                    $crate::test_utils::MockCellShape::$h.into(),
                 ],
                 [
-                    $crate::test_utils::MockCellState::$c.into(),
-                    $crate::test_utils::MockCellState::$f.into(),
-                    $crate::test_utils::MockCellState::$i.into(),
+                    $crate::test_utils::MockCellShape::$c.into(),
+                    $crate::test_utils::MockCellShape::$f.into(),
+                    $crate::test_utils::MockCellShape::$i.into(),
                 ],
             ],
-            ai_shape: $crate::board::CellState::O,
+            ai_shape: $crate::board::CellShape::O,
         }
     }};
 }
@@ -73,13 +75,13 @@ mod tests {
         // -----
         // O| |
         let board = make_board!(X X E; E O E; O E E);
-        assert_eq!(board.cells[0][0], Some(CellState::X));
-        assert_eq!(board.cells[1][0], Some(CellState::X));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
+        assert_eq!(board.cells[1][0], Some(CellShape::X));
         assert_eq!(board.cells[2][0], None);
         assert_eq!(board.cells[0][1], None);
-        assert_eq!(board.cells[1][1], Some(CellState::O));
+        assert_eq!(board.cells[1][1], Some(CellShape::O));
         assert_eq!(board.cells[2][1], None);
-        assert_eq!(board.cells[0][2], Some(CellState::O));
+        assert_eq!(board.cells[0][2], Some(CellShape::O));
         assert_eq!(board.cells[1][2], None);
         assert_eq!(board.cells[2][2], None);
 
@@ -89,11 +91,11 @@ mod tests {
         // -----
         //  | |
         let board = make_board!(X E O; X O E; E E E);
-        assert_eq!(board.cells[0][0], Some(CellState::X));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], None);
-        assert_eq!(board.cells[2][0], Some(CellState::O));
-        assert_eq!(board.cells[0][1], Some(CellState::X));
-        assert_eq!(board.cells[1][1], Some(CellState::O));
+        assert_eq!(board.cells[2][0], Some(CellShape::O));
+        assert_eq!(board.cells[0][1], Some(CellShape::X));
+        assert_eq!(board.cells[1][1], Some(CellShape::O));
         assert_eq!(board.cells[2][1], None);
         assert_eq!(board.cells[0][2], None);
         assert_eq!(board.cells[1][2], None);
@@ -105,14 +107,14 @@ mod tests {
         // -----
         // O| |O
         let board = make_board!(X X O; O X X; O E O);
-        assert_eq!(board.cells[0][0], Some(CellState::X));
-        assert_eq!(board.cells[1][0], Some(CellState::X));
-        assert_eq!(board.cells[2][0], Some(CellState::O));
-        assert_eq!(board.cells[0][1], Some(CellState::O));
-        assert_eq!(board.cells[1][1], Some(CellState::X));
-        assert_eq!(board.cells[2][1], Some(CellState::X));
-        assert_eq!(board.cells[0][2], Some(CellState::O));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
+        assert_eq!(board.cells[1][0], Some(CellShape::X));
+        assert_eq!(board.cells[2][0], Some(CellShape::O));
+        assert_eq!(board.cells[0][1], Some(CellShape::O));
+        assert_eq!(board.cells[1][1], Some(CellShape::X));
+        assert_eq!(board.cells[2][1], Some(CellShape::X));
+        assert_eq!(board.cells[0][2], Some(CellShape::O));
         assert_eq!(board.cells[1][2], None);
-        assert_eq!(board.cells[2][2], Some(CellState::O));
+        assert_eq!(board.cells[2][2], Some(CellShape::O));
     }
 }
