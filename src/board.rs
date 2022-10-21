@@ -1,5 +1,7 @@
 //! This module handles the board and the AI player.
 
+use itertools::Itertools;
+use rand::seq::SliceRandom;
 use rayon::prelude::*;
 use thiserror::Error;
 
@@ -197,7 +199,10 @@ impl Board {
                 new_board.cells[x][y] = Some(self.ai_shape);
                 ((x, y), new_board.evaluate_position(self.ai_shape.other()))
             })
-            .max_by_key(|x| x.1)
+            .collect::<Vec<_>>()
+            .iter()
+            .max_set_by_key(|&(_, x)| x)
+            .choose(&mut rand::thread_rng())
             .unwrap()
             .0
     }
