@@ -92,8 +92,9 @@ impl eframe::App for TicTacToeApp {
                         .clicked()
                     {
                         self.update_cell(x, y);
-                        let (x, y) = self.board.generate_ai_move();
-                        self.update_cell(x, y);
+                        if let Ok((x, y)) = self.board.generate_ai_move() {
+                            self.update_cell(x, y);
+                        }
                     };
                 }
             }

@@ -52,12 +52,12 @@ fn get_board_states() -> Vec<Board> {
         make_board!(O E O; E X E; E X X),
         make_board!(O E O; E X E; X E X),
         make_board!(O X E; E O X; X E O),
-        //make_board!(O X O; X O X; O X X),
+        make_board!(O X O; X O X; O X X),
         make_board!(X E O; X O E; E E E),
         make_board!(X O E; E X E; E E E),
         make_board!(X O E; E X O; O E X),
         make_board!(X O E; X O O; X O E),
-        //make_board!(X O O; O X X; X X O),
+        make_board!(X O O; O X X; X X O),
         make_board!(X O X; E X O; E O X),
         make_board!(X O X; E X O; O X O),
         make_board!(X O X; X O E; E E E),
@@ -83,7 +83,7 @@ fn benchmark_eval_and_move(c: &mut Criterion) {
     c.bench_function("generate_ai_move", |b| {
         b.iter(|| {
             for board in &board_states {
-                board.generate_ai_move();
+                let _ = board.generate_ai_move();
             }
         });
     });
