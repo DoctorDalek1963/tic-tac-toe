@@ -14,6 +14,7 @@ pub enum CellShape {
 
 impl CellShape {
     /// Return the opposite of the current shape.
+    #[must_use]
     pub fn other(&self) -> Self {
         match self {
             Self::X => Self::O,
@@ -82,6 +83,15 @@ impl Board {
     }
 
     /// Return the winner in the current board position, or a variant of [`WinnerError`] if there is no winner.
+    ///
+    /// # Errors
+    ///
+    /// - [`NoWinnerYet`](WinnerError::NoWinnerYet): There is currently no winner, but there could be
+    /// in the future.
+    /// - [`BoardFullNoWinner`](WinnerError::BoardFullNoWinner): The board is full and neither player
+    /// has won.
+    /// - [`MultipleWinners`](WinnerError::MultipleWinners): Both players have won. This should never
+    /// be achievable in normal play.
     pub fn get_winner(&self) -> Result<CellShape, WinnerError> {
         let triplets: [[Option<CellShape>; 3]; 8] = [
             [self.cells[0][0], self.cells[0][1], self.cells[0][2]], // Column 0
