@@ -10,5 +10,5 @@ echo 'dist = "/data/www/tictactoe"' >> Trunk.toml
 echo 'public_url = "/tictactoe/"'   >> Trunk.toml
 echo 'release = true'               >> Trunk.toml
 
+trunk build
 rm -f Trunk.toml
-git restore Trunk.toml
