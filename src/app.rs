@@ -56,8 +56,36 @@ impl TicTacToeApp {
     }
 
     fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
+        let painter = Painter::new(
+            ctx.clone(),
+            egui::LayerId::new(egui::Order::Middle, egui::Id::new("board_painter")),
+            rect,
+        );
+
         let cell_length = rect.size().x / 3.0;
         let nums = [0, 1, 2];
+
+        let stroke = Stroke {
+            width: rect.width() / 80.0,
+            color: Color32::GRAY,
+        };
+        for i in [1.0, 2.0] {
+            // Draw vertical lines
+            let x = rect.min.x + (i / 3.0) * rect.width();
+            let y = rect.max.y;
+            painter.add(egui::Shape::LineSegment {
+                points: [Pos2 { x, y: rect.min.y }, Pos2 { x, y }],
+                stroke,
+            });
+
+            // Draw horizontal lines
+            let y = rect.min.y + (i / 3.0) * rect.height();
+            let x = rect.max.x;
+            painter.add(egui::Shape::LineSegment {
+                points: [Pos2 { x: rect.min.x, y }, Pos2 { x, y }],
+                stroke,
+            });
+        }
 
         for y in nums {
             for x in nums {
@@ -69,24 +97,18 @@ impl TicTacToeApp {
                     Vec2::splat(cell_length),
                 );
 
-                if Self::draw_cell(ctx, ui, cell_rect, self.board.cells[x][y]).clicked() {
+                if Self::draw_cell(ui, &painter, cell_rect, self.board.cells[x][y]).clicked() {
                     self.update_cell(x, y);
                     if let Ok((x, y)) = self.board.generate_ai_move() {
                         self.update_cell(x, y);
                     }
-                };
+                }
             }
         }
     }
 
-    fn draw_cell(ctx: &Context, ui: &mut Ui, rect: Rect, shape: Option<CellShape>) -> Response {
+    fn draw_cell(ui: &mut Ui, painter: &Painter, rect: Rect, shape: Option<CellShape>) -> Response {
         let rect = centered_square_in_rect(rect, 0.8);
-
-        let layer_id = egui::LayerId::new(
-            egui::Order::Middle,
-            egui::Id::new(format!("cell_painter({rect:?})")),
-        );
-        let painter = Painter::new(ctx.clone(), layer_id, rect);
         let stroke_width = rect.width() / 30.0;
 
         match shape {
