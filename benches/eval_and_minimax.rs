@@ -75,6 +75,11 @@ fn benchmark_eval_and_move(c: &mut Criterion) {
         b.iter(|| {
             for board in &board_states {
                 board.evaluate_position(CellShape::X);
+            }
+        });
+
+        b.iter(|| {
+            for board in &board_states {
                 board.evaluate_position(CellShape::O);
             }
         });
