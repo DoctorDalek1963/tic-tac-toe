@@ -212,20 +212,35 @@ impl Board {
             return Err(());
         }
 
-        Ok(self
-            .empty_cells()
-            .par_iter()
-            .map(|&(x, y)| -> ((usize, usize), i8) {
-                let mut new_board = self.clone();
-                new_board.cells[x][y] = Some(self.ai_shape);
-                ((x, y), new_board.evaluate_position(self.ai_shape.other()))
-            })
-            .collect::<Vec<_>>()
-            .iter()
-            .max_set_by_key(|&(_, x)| x)
-            .choose(&mut rand::thread_rng())
-            .unwrap()
-            .0)
+        let empty_cells = self.empty_cells();
+
+        // Go in the center when possible
+        if empty_cells.contains(&(1, 1)) {
+            Ok((1, 1))
+
+        // When there's only one shape on the board and the center is full
+        } else if empty_cells.len() >= 8 {
+            Ok(**[(0, 0), (2, 2), (0, 2), (2, 0)]
+                .iter()
+                .filter(|&x| empty_cells.contains(x))
+                .collect::<Vec<_>>()
+                .choose(&mut rand::thread_rng())
+                .unwrap())
+        } else {
+            Ok(empty_cells
+                .par_iter()
+                .map(|&(x, y)| -> ((usize, usize), i8) {
+                    let mut new_board = self.clone();
+                    new_board.cells[x][y] = Some(self.ai_shape);
+                    ((x, y), new_board.evaluate_position(self.ai_shape.other()))
+                })
+                .collect::<Vec<_>>()
+                .iter()
+                .max_set_by_key(|&(_, x)| x)
+                .choose(&mut rand::thread_rng())
+                .unwrap()
+                .0)
+        }
     }
 }
 
