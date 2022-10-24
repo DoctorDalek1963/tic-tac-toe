@@ -2,8 +2,13 @@
 
 use itertools::Itertools;
 use rand::seq::SliceRandom;
-use rayon::prelude::*;
 use thiserror::Error;
+
+#[cfg(not(target_arch = "wasm32"))]
+use rayon::prelude::*;
+
+#[cfg(target_arch = "wasm32")]
+use crate::fake_par_iter::VecParIter;
 
 /// An enum for the shape of a cell on the [`Board`].
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]

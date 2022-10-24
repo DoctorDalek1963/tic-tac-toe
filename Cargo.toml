@@ -10,12 +10,17 @@ name = "tictactoe"
 path = "src/lib.rs"
 
 [dependencies]
-eframe = "0.19.0"
+eframe = { version = "0.19.0", features = ["dark-light"] }
 itertools = "0.10.5"
 rand = "0.8.5"
 rayon = "1.5.3"
 thiserror = "1.0.37"
 
+# Wasm stuff
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+console_error_panic_hook = "0.1.6"
+
+# Criterion benchmarking
 [dev-dependencies]
 criterion = "0.4.0"
 
