@@ -2,12 +2,13 @@
 
 mkdir -p /data/www/tictactoe
 
-# Web app
-git restore Trunk.toml
+rm -f Trunk.toml
 
+touch Trunk.toml
+echo '[build]'                      >> Trunk.toml
 echo 'dist = "/data/www/tictactoe"' >> Trunk.toml
 echo 'public_url = "/tictactoe/"'   >> Trunk.toml
 echo 'release = true'               >> Trunk.toml
 
-trunk build
+rm -f Trunk.toml
 git restore Trunk.toml

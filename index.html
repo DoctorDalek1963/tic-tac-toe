@@ -10,12 +10,7 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 		<link data-trunk rel="rust" data-wasm-opt="3" />
-		<link data-trunk rel="icon" href="assets/favicon.ico">
-		<link data-trunk rel="copy-file" href="assets/sw.js" />
-		<link data-trunk rel="copy-file" href="assets/icon-256.png" />
-		<link data-trunk rel="copy-file" href="assets/icon-512.png" />
-		<link data-trunk rel="copy-file" href="assets/manifest.json" />
-		<link rel="manifest" href="manifest.json">
+		<link data-trunk rel="icon" href="favicon.ico">
 
 		<style>
 			html {
@@ -49,16 +44,5 @@
 	<body>
 		<!-- The WASM code will resize the canvas dynamically -->
 		<canvas id="main_canvas_id"></canvas>
-
-		<!--Register Service Worker. this will cache the wasm / js scripts for offline use (for PWA functionality). -->
-		<!-- Force refresh (Ctrl + F5) to load the latest files instead of cached files  -->
-		<script>
-			// We disable caching during development so that we always view the latest version.
-			if ('serviceWorker' in navigator && window.location.hash !== "#dev") {
-				window.addEventListener('load', function () {
-					navigator.serviceWorker.register('sw.js');
-				});
-			}
-		</script>
 	</body>
 </html>
