@@ -149,7 +149,13 @@ impl TicTacToeApp {
             }
         };
 
-        ui.allocate_rect(rect, Sense::click())
+        ui.allocate_rect(
+            rect,
+            match shape {
+                Some(_) => Sense::focusable_noninteractive(),
+                None => Sense::click(),
+            },
+        )
     }
 }
 
