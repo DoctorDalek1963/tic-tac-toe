@@ -2,9 +2,17 @@
 
 use crate::board::{Board, CellShape};
 use eframe::{
-    egui::{self, Rect},
-    epaint::{Pos2, Vec2},
+    egui::{self, Context, Painter, Rect, Response, Sense, Ui},
+    epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
 };
+
+/// Create a centered square in the given rect, taking up the given percentage of length.
+fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
+    let Vec2 { x, y } = rect.max - rect.min;
+    let length = percent * x.min(y);
+
+    Rect::from_center_size(rect.center(), Vec2::splat(length))
+}
 
 /// The struct to hold the state of the app.
 pub struct TicTacToeApp {
@@ -15,6 +23,13 @@ pub struct TicTacToeApp {
     ///
     /// See [`update_cell`](TicTacToeApp::update_cell).
     active_shape: CellShape,
+}
+
+impl Default for TicTacToeApp {
+    /// Create a default board with the player using the `X` shape.
+    fn default() -> Self {
+        Self::new(CellShape::X)
+    }
 }
 
 impl TicTacToeApp {
@@ -31,9 +46,7 @@ impl TicTacToeApp {
             self.active_shape = self.active_shape.other();
         }
     }
-}
 
-impl TicTacToeApp {
     /// Create a new app with the given player shape (the player moves first).
     pub fn new(player_shape: CellShape) -> Self {
         Self {
@@ -41,63 +54,88 @@ impl TicTacToeApp {
             active_shape: player_shape,
         }
     }
-}
 
-impl Default for TicTacToeApp {
-    /// Create a default board with the player using the `X` shape.
-    fn default() -> Self {
-        Self::new(CellShape::X)
+    fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
+        let cell_length = rect.size().x / 3.0;
+        let nums = [0, 1, 2];
+
+        for y in nums {
+            for x in nums {
+                let cell_rect = Rect::from_min_size(
+                    Pos2::new(
+                        rect.min.x + (x as f32 * cell_length),
+                        rect.min.y + (y as f32 * cell_length),
+                    ),
+                    Vec2::splat(cell_length),
+                );
+
+                if Self::draw_cell(ctx, ui, cell_rect, self.board.cells[x][y]).clicked() {
+                    self.update_cell(x, y);
+                    if let Ok((x, y)) = self.board.generate_ai_move() {
+                        self.update_cell(x, y);
+                    }
+                };
+            }
+        }
+    }
+
+    fn draw_cell(ctx: &Context, ui: &mut Ui, rect: Rect, shape: Option<CellShape>) -> Response {
+        let rect = centered_square_in_rect(rect, 0.8);
+
+        let layer_id = egui::LayerId::new(
+            egui::Order::Middle,
+            egui::Id::new(format!("cell_painter({rect:?})")),
+        );
+        let painter = Painter::new(ctx.clone(), layer_id, rect);
+        let stroke_width = rect.width() / 30.0;
+
+        match shape {
+            None => (),
+            Some(CellShape::X) => {
+                let rect = centered_square_in_rect(rect, 0.9);
+                let tl = rect.min;
+                let br = rect.max;
+                let bl = Pos2 { x: tl.x, y: br.y };
+                let tr = Pos2 { x: br.x, y: tl.y };
+
+                let stroke = Stroke {
+                    width: stroke_width,
+                    color: Color32::LIGHT_RED,
+                };
+
+                painter.extend(vec![
+                    egui::Shape::LineSegment {
+                        points: [tl, br],
+                        stroke,
+                    },
+                    egui::Shape::LineSegment {
+                        points: [bl, tr],
+                        stroke,
+                    },
+                ]);
+            }
+            Some(CellShape::O) => {
+                painter.add(egui::Shape::Circle(CircleShape {
+                    center: rect.center(),
+                    radius: rect.width() / 2.2,
+                    fill: Color32::TRANSPARENT,
+                    stroke: Stroke {
+                        width: stroke_width,
+                        color: Color32::LIGHT_BLUE,
+                    },
+                }));
+            }
+        };
+
+        ui.allocate_rect(rect, Sense::click())
     }
 }
 
 impl eframe::App for TicTacToeApp {
     /// Show the app itself.
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        /// Get the string form of the given shape.
-        fn get_string(x: Option<CellShape>) -> String {
-            match x {
-                None => "",
-                Some(state) => match state {
-                    CellShape::X => "X",
-                    CellShape::O => "O",
-                },
-            }
-            .to_string()
-        }
-
+    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            // Create a square which fills as much space as possible, and is centered
-            let rect = {
-                let max_len = ui.clip_rect().max;
-                let length = 0.9 * max_len.x.min(max_len.y);
-
-                Rect::from_center_size(ui.clip_rect().center(), Vec2::splat(length))
-            };
-            let cell_length = rect.size().x / 3.0;
-            let nums = [0, 1, 2];
-
-            for y in nums {
-                for x in nums {
-                    let cell_rect = Rect::from_min_size(
-                        Pos2::new(
-                            rect.min.x + (x as f32 * cell_length),
-                            rect.min.y + (y as f32 * cell_length),
-                        ),
-                        Vec2::splat(cell_length),
-                    );
-                    let s = get_string(self.board.cells[x][y]);
-
-                    if ui
-                        .put(cell_rect, egui::Button::new(s).frame(true))
-                        .clicked()
-                    {
-                        self.update_cell(x, y);
-                        if let Ok((x, y)) = self.board.generate_ai_move() {
-                            self.update_cell(x, y);
-                        }
-                    };
-                }
-            }
+            self.draw_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9));
         });
     }
 }
