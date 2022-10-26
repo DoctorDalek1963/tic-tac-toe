@@ -31,3 +31,17 @@ repos:
         language: system
         types: [rust]
         pass_filenames: false
+
+      - id: trunk-build
+        name: trunk build
+        entry: trunk build
+        language: system
+        types: [rust]
+        pass_filenames: false
+
+      - id: trunk-build-release
+        name: trunk build release
+        entry: trunk build --release
+        language: system
+        types: [rust]
+        pass_filenames: false
