@@ -2,7 +2,7 @@
 
 use crate::board::{Board, CellShape};
 use eframe::{
-    egui::{self, Context, Painter, Rect, Response, Sense, Ui},
+    egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
     epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
 };
 
@@ -73,7 +73,7 @@ impl TicTacToeApp {
             // Draw vertical lines
             let x = rect.min.x + (i / 3.0) * rect.width();
             let y = rect.max.y;
-            painter.add(egui::Shape::LineSegment {
+            painter.add(Shape::LineSegment {
                 points: [Pos2 { x, y: rect.min.y }, Pos2 { x, y }],
                 stroke,
             });
@@ -81,7 +81,7 @@ impl TicTacToeApp {
             // Draw horizontal lines
             let y = rect.min.y + (i / 3.0) * rect.height();
             let x = rect.max.x;
-            painter.add(egui::Shape::LineSegment {
+            painter.add(Shape::LineSegment {
                 points: [Pos2 { x: rect.min.x, y }, Pos2 { x, y }],
                 stroke,
             });
@@ -97,7 +97,15 @@ impl TicTacToeApp {
                     Vec2::splat(cell_length),
                 );
 
-                if Self::draw_cell(ui, &painter, cell_rect, self.board.cells[x][y]).clicked() {
+                if Self::draw_cell(
+                    ui,
+                    &painter,
+                    cell_rect,
+                    self.board.cells[x][y],
+                    self.board.get_winner().is_err(),
+                )
+                .clicked()
+                {
                     self.update_cell(x, y);
                     if let Ok((x, y)) = self.board.generate_ai_move() {
                         self.update_cell(x, y);
@@ -105,9 +113,81 @@ impl TicTacToeApp {
                 }
             }
         }
+
+        if let Ok((_, [start_coord, _, end_coord])) = self.board.get_winner() {
+            let Pos2 { x: min_x, y: min_y } = rect.min;
+            let Pos2 { x: max_x, y: max_y } = rect.max;
+            let len = rect.width();
+
+            let [start, end]: [Pos2; 2] = match [start_coord, end_coord] {
+                [(0, 0), (0, 2)] /* Column 0 */ => [
+                    Pos2 { x: min_x + len / 6., y: min_y },
+                    Pos2 { x: min_x + len / 6., y: max_y },
+                ],
+
+                [(1, 0), (1, 2)] /* Column 1 */ => [
+                    Pos2 { x: min_x + len / 2., y: min_y },
+                    Pos2 { x: min_x + len / 2., y: max_y },
+                ],
+
+                [(2, 0), (2, 2)] /* Column 2 */ => [
+                    Pos2 { x: min_x + (5. * len / 6.), y: min_y },
+                    Pos2 { x: min_x + (5. * len / 6.), y: max_y },
+                ],
+
+                [(0, 0), (2, 0)] /* Row 0 */ => [
+                    Pos2 { x: min_x, y: min_y + len / 6. },
+                    Pos2 { x: max_x, y: min_y + len / 6. },
+                ],
+
+                [(0, 1), (2, 1)] /* Row 1 */ => [
+                    Pos2 { x: min_x, y: min_y + len / 2. },
+                    Pos2 { x: max_x, y: min_y + len / 2. },
+                ],
+
+                [(0, 2), (2, 2)] /* Row 2 */ => [
+                    Pos2 { x: min_x, y: min_y + (5. * len / 6.) },
+                    Pos2 { x: max_x, y: min_y + (5. * len / 6.) },
+                ],
+
+                [(0, 2), (2, 0)] /* +ve diagonal */ => {
+                    let x = 0.5 * len * 0.95;
+                    let vec = Vec2 { x, y: -x };
+                    [
+                        rect.center() + vec,
+                        rect.center() - vec,
+                    ]
+                },
+
+                [(0, 0), (2, 2)] /* -ve diagonal */ => {
+                    let vec = Vec2::splat(0.5 * len * 0.95);
+                    [
+                        rect.center() + vec,
+                        rect.center() - vec,
+                    ]
+                },
+
+                _ => unreachable!("We should have covered all possible winning lines")
+            };
+
+            let stroke_width = rect.width() / 90.0;
+            painter.add(Shape::LineSegment {
+                points: [start, end],
+                stroke: Stroke {
+                    width: stroke_width,
+                    color: Color32::WHITE,
+                },
+            });
+        }
     }
 
-    fn draw_cell(ui: &mut Ui, painter: &Painter, rect: Rect, shape: Option<CellShape>) -> Response {
+    fn draw_cell(
+        ui: &mut Ui,
+        painter: &Painter,
+        rect: Rect,
+        shape: Option<CellShape>,
+        interactive: bool,
+    ) -> Response {
         let rect = centered_square_in_rect(rect, 0.8);
         let stroke_width = rect.width() / 30.0;
 
@@ -126,18 +206,18 @@ impl TicTacToeApp {
                 };
 
                 painter.extend(vec![
-                    egui::Shape::LineSegment {
+                    Shape::LineSegment {
                         points: [tl, br],
                         stroke,
                     },
-                    egui::Shape::LineSegment {
+                    Shape::LineSegment {
                         points: [bl, tr],
                         stroke,
                     },
                 ]);
             }
             Some(CellShape::O) => {
-                painter.add(egui::Shape::Circle(CircleShape {
+                painter.add(Shape::Circle(CircleShape {
                     center: rect.center(),
                     radius: rect.width() / 2.2,
                     fill: Color32::TRANSPARENT,
@@ -153,7 +233,13 @@ impl TicTacToeApp {
             rect,
             match shape {
                 Some(_) => Sense::focusable_noninteractive(),
-                None => Sense::click(),
+                None => {
+                    if interactive {
+                        Sense::click()
+                    } else {
+                        Sense::focusable_noninteractive()
+                    }
+                }
             },
         )
     }
