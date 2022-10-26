@@ -172,10 +172,11 @@ impl eframe::App for TicTacToeApp {
 mod tests {
     use super::*;
     use crate::test_utils::make_board;
+    use crate::Coord;
 
     #[test]
     fn update_cell_test() {
-        let map_1: Vec<((usize, usize), Board)> = vec![
+        let map_1: Vec<(Coord, Board)> = vec![
             ((0, 1), make_board!(E E E; X E E; E E E)),
             ((2, 1), make_board!(E E E; X E O; E E E)),
             ((0, 0), make_board!(X E E; X E O; E E E)),
@@ -184,7 +185,7 @@ mod tests {
             ((0, 2), make_board!(X E X; X E O; O E O)),
         ];
 
-        let map_2: Vec<((usize, usize), Board)> = vec![
+        let map_2: Vec<(Coord, Board)> = vec![
             ((0, 3), make_board!(E E E; E E E; E E E)),
             ((6, 3), make_board!(E E E; E E E; E E E)),
             ((1, 1), make_board!(E E E; E X E; E E E)),

@@ -1,5 +1,6 @@
 //! This module handles the board and the AI player.
 
+use crate::Coord;
 use itertools::Itertools;
 use rand::seq::SliceRandom;
 use thiserror::Error;
@@ -97,28 +98,43 @@ impl Board {
     /// has won.
     /// - [`MultipleWinners`](WinnerError::MultipleWinners): Both players have won. This should never
     /// be achievable in normal play.
-    pub fn get_winner(&self) -> Result<CellShape, WinnerError> {
-        let triplets: [[Option<CellShape>; 3]; 8] = [
-            [self.cells[0][0], self.cells[0][1], self.cells[0][2]], // Column 0
-            [self.cells[1][0], self.cells[1][1], self.cells[1][2]], // Column 1
-            [self.cells[2][0], self.cells[2][1], self.cells[2][2]], // Column 2
-            [self.cells[0][0], self.cells[1][0], self.cells[2][0]], // Row 0
-            [self.cells[0][1], self.cells[1][1], self.cells[2][1]], // Row 1
-            [self.cells[0][2], self.cells[1][2], self.cells[2][2]], // Row 2
-            [self.cells[0][2], self.cells[1][1], self.cells[2][0]], // +ve diagonal
-            [self.cells[0][0], self.cells[1][1], self.cells[2][2]], // -ve diagonal
+    pub fn get_winner(&self) -> Result<(CellShape, [Coord; 3]), WinnerError> {
+        // This closure returns a tuple with the shapes and the actual coordinates
+        let get_triplet = |coords: [Coord; 3]| -> ([Option<CellShape>; 3], [Coord; 3]) {
+            let get_cell = |coord: Coord| -> Option<CellShape> { self.cells[coord.0][coord.1] };
+
+            (
+                [
+                    get_cell(coords[0]),
+                    get_cell(coords[1]),
+                    get_cell(coords[2]),
+                ],
+                coords,
+            )
+        };
+
+        // Each element of this array is a tuple of the shapes and the actual coordinates
+        let triplets: [([Option<CellShape>; 3], [Coord; 3]); 8] = [
+            get_triplet([(0, 0), (0, 1), (0, 2)]), // Column 0
+            get_triplet([(1, 0), (1, 1), (1, 2)]), // Column 1
+            get_triplet([(2, 0), (2, 1), (2, 2)]), // Column 2
+            get_triplet([(0, 0), (1, 0), (2, 0)]), // Row 0
+            get_triplet([(0, 1), (1, 1), (2, 1)]), // Row 1
+            get_triplet([(0, 2), (1, 2), (2, 2)]), // Row 2
+            get_triplet([(0, 2), (1, 1), (2, 0)]), // +ve diagonal
+            get_triplet([(0, 0), (1, 1), (2, 2)]), // -ve diagonal
         ];
 
-        let states = triplets
+        let states: Vec<(CellShape, [Coord; 3])> = triplets
             .iter()
             .filter_map(
                 // Map the arrays into an Option<CellShape> representing their win
-                |x| match x {
+                |&(shapes, coords)| match shapes {
                     [Some(CellShape::X), Some(CellShape::X), Some(CellShape::X)] => {
-                        Some(CellShape::X)
+                        Some((CellShape::X, coords))
                     }
                     [Some(CellShape::O), Some(CellShape::O), Some(CellShape::O)] => {
-                        Some(CellShape::O)
+                        Some((CellShape::O, coords))
                     }
                     _ => None,
                 },
@@ -144,7 +160,7 @@ impl Board {
     /// Return a vector of the coordinates of empty cells in the board.
     ///
     /// This method searches columns before rows.
-    fn empty_cells(&self) -> Vec<(usize, usize)> {
+    fn empty_cells(&self) -> Vec<Coord> {
         self.cells
             .iter()
             .enumerate()
@@ -156,7 +172,7 @@ impl Board {
                         None => Some((col, row)),
                         Some(_) => None,
                     })
-                    .collect::<Vec<(usize, usize)>>()
+                    .collect::<Vec<Coord>>()
             })
             .collect()
     }
@@ -171,8 +187,8 @@ impl Board {
     /// creating or blocking a win in the short term is prioritised over long term play.
     pub fn evaluate_position(&self, shape_to_play: CellShape) -> i8 {
         match self.get_winner() {
-            Ok(x) if x == self.ai_shape => 100,
-            Ok(x) if x == self.ai_shape.other() => -100,
+            Ok((x, _)) if x == self.ai_shape => 100,
+            Ok((x, _)) if x == self.ai_shape.other() => -100,
             Ok(_) => unreachable!(),
             Err(WinnerError::MultipleWinners | WinnerError::BoardFullNoWinner) => 0,
             Err(WinnerError::NoWinnerYet) => {
@@ -207,7 +223,7 @@ impl Board {
     ///
     /// If the board is full, then we return `Err(())`. We return unit because a full board is the
     /// only possible error.
-    pub fn generate_ai_move(&self) -> Result<(usize, usize), ()> {
+    pub fn generate_ai_move(&self) -> Result<Coord, ()> {
         if self.empty_cells().is_empty() {
             return Err(());
         }
@@ -229,7 +245,7 @@ impl Board {
         } else {
             Ok(empty_cells
                 .par_iter()
-                .map(|&(x, y)| -> ((usize, usize), i8) {
+                .map(|&(x, y)| -> (Coord, i8) {
                     let mut new_board = self.clone();
                     new_board.cells[x][y] = Some(self.ai_shape);
                     ((x, y), new_board.evaluate_position(self.ai_shape.other()))
@@ -271,13 +287,28 @@ mod tests {
         //  |X|O
         //  |O|X
         let board = make_board!(X O X; E X O; E O X);
-        assert_eq!(board.get_winner(), Ok(CellShape::X));
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::X, [(0, 0), (1, 1), (2, 2)]))
+        );
 
         // O|X|O
         // X|O|X
         // O|X|X
         let board = make_board!(O X O; X O X; O X X);
-        assert_eq!(board.get_winner(), Ok(CellShape::O));
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::O, [(0, 2), (1, 1), (2, 0)]))
+        );
+
+        // O|X|O
+        // O|O|X
+        // X|X|X
+        let board = make_board!(O X O; O O X; X X X);
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::X, [(0, 2), (1, 2), (2, 2)]))
+        );
 
         // X|O|O
         // O|X|X
