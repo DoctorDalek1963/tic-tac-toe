@@ -232,14 +232,8 @@ impl TicTacToeApp {
         ui.allocate_rect(
             rect,
             match shape {
-                Some(_) => Sense::focusable_noninteractive(),
-                None => {
-                    if interactive {
-                        Sense::click()
-                    } else {
-                        Sense::focusable_noninteractive()
-                    }
-                }
+                None if interactive => Sense::click(),
+                _ => Sense::focusable_noninteractive(),
             },
         )
     }
