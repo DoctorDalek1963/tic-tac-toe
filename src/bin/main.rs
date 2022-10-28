@@ -6,7 +6,7 @@ fn main() {
     eframe::run_native(
         "Tic-tac-toe",
         options,
-        Box::new(|_cc| Box::new(TicTacToeApp::default())),
+        Box::new(|cc| Box::new(TicTacToeApp::new(cc))),
     );
 }
 
@@ -18,7 +18,7 @@ fn main() {
     eframe::start_web(
         "main_canvas_id",
         options,
-        Box::new(|_cc| Box::new(TicTacToeApp::default())),
+        Box::new(|cc| Box::new(TicTacToeApp::new(cc))),
     )
     .unwrap();
 }

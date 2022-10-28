@@ -3,6 +3,7 @@
 use crate::Coord;
 use itertools::Itertools;
 use rand::seq::SliceRandom;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -12,7 +13,7 @@ use rayon::prelude::*;
 use crate::fake_par_iter::VecParIter;
 
 /// An enum for the shape of a cell on the [`Board`].
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum CellShape {
     X,
     O,

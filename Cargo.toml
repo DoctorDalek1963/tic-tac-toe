@@ -10,9 +10,10 @@ name = "tictactoe"
 path = "src/lib.rs"
 
 [dependencies]
-eframe = { version = "0.19.0", features = ["dark-light"] }
+eframe = { version = "0.19.0", features = ["dark-light", "persistence"] }
 itertools = "0.10.5"
 rand = "0.8.5"
+serde = { version = "1.0.147", features = ["derive"] }
 thiserror = "1.0.37"
 
 # Only use rayon when compiling natively

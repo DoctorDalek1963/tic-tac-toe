@@ -8,6 +8,7 @@ use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
     epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
 };
+use serde::{Deserialize, Serialize};
 use std::sync::mpsc;
 
 type CoordResult = Result<Coord, ()>;
@@ -39,8 +40,31 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
     .forget();
 }
 
+/// A struct representing the app configuration, meant to be saved and loaded between sessions.
+#[derive(Serialize, Deserialize)]
+#[serde(default)]
+struct Config {
+    /// Whether the player should make the first move.
+    player_plays_first: bool,
+
+    /// Which shape the player uses.
+    player_shape: CellShape,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            player_plays_first: true,
+            player_shape: CellShape::X,
+        }
+    }
+}
+
 /// The struct to hold the state of the app.
 pub struct TicTacToeApp {
+    /// The configuration of the app.
+    config: Config,
+
     /// The actual board itself.
     board: Board,
 
@@ -62,13 +86,50 @@ pub struct TicTacToeApp {
 }
 
 impl Default for TicTacToeApp {
-    /// Create a default board with the player using the `X` shape.
     fn default() -> Self {
-        Self::new(CellShape::X)
+        Self::new_with_config(Config::default())
     }
 }
 
 impl TicTacToeApp {
+    /// Create a new app, attempting to restore previous [`Config`], or using the default config.
+    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let config = if let Some(storage) = cc.storage {
+            eframe::get_value(storage, "config").unwrap_or_default()
+        } else {
+            Config::default()
+        };
+
+        Self::new_with_config(config)
+    }
+
+    /// Create a new app with the given config.
+    ///
+    /// If [`Config::player_plays_first`] is false, then we also start an AI move in the background
+    /// by calling [`send_move_after_delay`].
+    fn new_with_config(config: Config) -> Self {
+        let (mv_tx, mv_rx) = mpsc::channel();
+
+        let board = Board::new(config.player_shape.other());
+        let waiting_on_move = !config.player_plays_first;
+
+        let active_shape = if waiting_on_move {
+            send_move_after_delay(board.clone(), mv_tx.clone());
+            config.player_shape.other()
+        } else {
+            config.player_shape
+        };
+
+        Self {
+            config,
+            board,
+            active_shape,
+            waiting_on_move,
+            mv_tx,
+            mv_rx,
+        }
+    }
+
     /// Update the board to reflect a cell being clicked.
     ///
     /// This method uses [`active_shape`](TicTacToeApp::active_shape) as the shape to place in the cell.
@@ -80,18 +141,6 @@ impl TicTacToeApp {
         if self.board.cells[x][y].is_none() {
             self.board.cells[x][y] = Some(self.active_shape);
             self.active_shape = self.active_shape.other();
-        }
-    }
-
-    /// Create a new app with the given player shape (the player moves first).
-    pub fn new(player_shape: CellShape) -> Self {
-        let (mv_tx, mv_rx) = mpsc::channel();
-        Self {
-            board: Board::new(player_shape.other()),
-            active_shape: player_shape,
-            waiting_on_move: false,
-            mv_tx,
-            mv_rx,
         }
     }
 
@@ -296,6 +345,10 @@ impl eframe::App for TicTacToeApp {
             self.draw_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9));
         });
     }
+
+    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, "config", &self.config);
+    }
 }
 
 #[cfg(test)]
@@ -326,7 +379,7 @@ mod tests {
         ];
 
         for moves_map in [map_1, map_2] {
-            let mut app = TicTacToeApp::new(CellShape::X);
+            let mut app = TicTacToeApp::default();
             assert_eq!(app.board, Board::default());
 
             for ((x, y), board) in moves_map {
