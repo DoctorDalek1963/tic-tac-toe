@@ -22,6 +22,7 @@ rayon = "1.5.3"
 # Wasm stuff
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 console_error_panic_hook = "0.1.6"
+gloo-timers = "0.2.4"
 
 # Criterion benchmarking
 [dev-dependencies]

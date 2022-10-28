@@ -1,10 +1,16 @@
 //! This module handles the `egui` interface to the game.
 
-use crate::board::{Board, CellShape};
+use crate::{
+    board::{Board, CellShape},
+    Coord,
+};
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
     epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
 };
+use std::sync::mpsc;
+
+type CoordResult = Result<Coord, ()>;
 
 /// Create a centered square in the given rect, taking up the given percentage of length.
 fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
@@ -12,6 +18,25 @@ fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
     let length = percent * x.min(y);
 
     Rect::from_center_size(rect.center(), Vec2::splat(length))
+}
+
+/// This method sends an AI-generated move down an `mpsc` channel after 200ms.
+#[cfg(not(target_arch = "wasm32"))]
+fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
+    use std::{thread, time::Duration};
+    thread::spawn(move || {
+        thread::sleep(Duration::from_millis(200));
+        let _ = tx.send(board.generate_ai_move());
+    });
+}
+
+/// This method sends an AI-generated move down an `mpsc` channel after 200ms.
+#[cfg(target_arch = "wasm32")]
+fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
+    gloo_timers::callback::Timeout::new(200, move || {
+        let _ = tx.send(board.generate_ai_move());
+    })
+    .forget();
 }
 
 /// The struct to hold the state of the app.
@@ -23,6 +48,17 @@ pub struct TicTacToeApp {
     ///
     /// See [`update_cell`](TicTacToeApp::update_cell).
     active_shape: CellShape,
+
+    /// Whether we're currently waiting for the AI to make a move.
+    waiting_on_move: bool,
+
+    /// The AI moves are computed in a background thread to make the UI more snappy. This is the
+    /// sender that we pass to the background thread to get the AI move back.
+    mv_tx: mpsc::Sender<CoordResult>,
+
+    /// The AI moves are computed in a background thread to make the UI more snappy. This is the
+    /// receiver that receives the computed AI moves.
+    mv_rx: mpsc::Receiver<CoordResult>,
 }
 
 impl Default for TicTacToeApp {
@@ -49,13 +85,19 @@ impl TicTacToeApp {
 
     /// Create a new app with the given player shape (the player moves first).
     pub fn new(player_shape: CellShape) -> Self {
+        let (mv_tx, mv_rx) = mpsc::channel();
         Self {
             board: Board::new(player_shape.other()),
             active_shape: player_shape,
+            waiting_on_move: false,
+            mv_tx,
+            mv_rx,
         }
     }
 
     fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
+        ctx.request_repaint();
+
         let painter = Painter::new(
             ctx.clone(),
             egui::LayerId::new(egui::Order::Middle, egui::Id::new("board_painter")),
@@ -105,12 +147,20 @@ impl TicTacToeApp {
                     self.board.get_winner().is_err(),
                 )
                 .clicked()
+                    && !self.waiting_on_move
                 {
                     self.update_cell(x, y);
-                    if let Ok((x, y)) = self.board.generate_ai_move() {
-                        self.update_cell(x, y);
-                    }
+
+                    send_move_after_delay(self.board.clone(), self.mv_tx.clone());
+                    self.waiting_on_move = true;
                 }
+            }
+        }
+
+        if self.waiting_on_move {
+            if let Ok(Ok((x, y))) = self.mv_rx.try_recv() {
+                self.update_cell(x, y);
+                self.waiting_on_move = false;
             }
         }
 
