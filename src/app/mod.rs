@@ -27,18 +27,29 @@ fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
 fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
-    use std::{thread, time::Duration};
+    use std::{
+        thread,
+        time::{Duration, Instant},
+    };
+
     thread::spawn(move || {
-        thread::sleep(Duration::from_millis(200));
-        let _ = tx.send(board.generate_ai_move());
+        let start = Instant::now();
+        let mv = board.generate_ai_move();
+        thread::sleep(Duration::from_millis(200) - start.elapsed());
+        let _ = tx.send(mv);
     });
 }
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(target_arch = "wasm32")]
 fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
-    gloo_timers::callback::Timeout::new(200, move || {
-        let _ = tx.send(board.generate_ai_move());
+    use stdweb::web::Date;
+
+    let start = Date::now(); // millis
+    let mv = board.generate_ai_move();
+
+    gloo_timers::callback::Timeout::new((200. - (Date::now() - start)) as u32, move || {
+        let _ = tx.send(mv);
     })
     .forget();
 }
