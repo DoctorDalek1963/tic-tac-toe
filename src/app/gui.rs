@@ -11,7 +11,7 @@ impl TicTacToeApp {
 
         let painter = Painter::new(
             ctx.clone(),
-            egui::LayerId::new(egui::Order::Middle, egui::Id::new("board_painter")),
+            egui::LayerId::new(egui::Order::Background, egui::Id::new("board_painter")),
             rect,
         );
 

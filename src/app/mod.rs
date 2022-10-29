@@ -10,7 +10,7 @@ use crate::{
 };
 use eframe::{
     egui::{self, Context, Rect},
-    epaint::Vec2,
+    epaint::{Color32, Vec2},
 };
 use std::sync::mpsc;
 
@@ -48,6 +48,9 @@ pub struct TicTacToeApp {
     /// The configuration of the app.
     config: Config,
 
+    /// Whether the settings window is currently being shown.
+    showing_settings_window: bool,
+
     /// The actual board itself.
     board: Board,
 
@@ -77,11 +80,10 @@ impl Default for TicTacToeApp {
 impl TicTacToeApp {
     /// Create a new app, attempting to restore previous [`Config`], or using the default config.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        let config = if let Some(storage) = cc.storage {
-            eframe::get_value(storage, "config").unwrap_or_default()
-        } else {
-            Config::default()
-        };
+        let config = cc.storage.map_or_else(
+            || Default::default(),
+            |storage| eframe::get_value(storage, "config").unwrap_or_default(),
+        );
 
         Self::new_with_config(config)
     }
@@ -105,12 +107,20 @@ impl TicTacToeApp {
 
         Self {
             config,
+            showing_settings_window: false,
             board,
             active_shape,
             waiting_on_move,
             mv_tx,
             mv_rx,
         }
+    }
+
+    /// Update the interior state of the app with the current config.
+    ///
+    /// See [`Self::new_with_config`]
+    fn restart_game(&mut self) {
+        *self = Self::new_with_config(self.config)
     }
 
     /// Update the board to reflect a cell being clicked.
@@ -132,8 +142,48 @@ impl eframe::App for TicTacToeApp {
     /// Show the app itself.
     fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            // Show the restart game and settings buttons
+            ui.horizontal(|ui| {
+                use eframe::epaint::{FontFamily, FontId};
+                use egui::TextStyle::Button;
+
+                let mut style = (*ctx.style()).clone();
+                style
+                    .text_styles
+                    .insert(Button, FontId::new(30., FontFamily::Proportional));
+                ui.set_style(style);
+
+                if ui
+                    .add(egui::Button::new("\u{27F3}").fill(Color32::TRANSPARENT))
+                    .clicked()
+                {
+                    self.restart_game();
+                }
+
+                if ui
+                    .add(
+                        egui::Button::new("\u{2699}").fill(if self.showing_settings_window {
+                            if ctx.style().visuals.dark_mode {
+                                Color32::from_rgb(0x00, 0x5C, 0x80)
+                            } else {
+                                Color32::from_rgb(0x90, 0xD1, 0xFF)
+                            }
+                        } else {
+                            Color32::TRANSPARENT
+                        }),
+                    )
+                    .clicked()
+                {
+                    self.showing_settings_window = !self.showing_settings_window;
+                }
+            });
+
             self.draw_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9));
         });
+
+        if self.showing_settings_window {
+            self.draw_settings_window(ctx);
+        }
     }
 
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
