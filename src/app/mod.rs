@@ -91,10 +91,9 @@ impl Default for TicTacToeApp {
 impl TicTacToeApp {
     /// Create a new app, attempting to restore previous [`Config`], or using the default config.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        let config = cc.storage.map_or_else(
-            || Default::default(),
-            |storage| eframe::get_value(storage, "config").unwrap_or_default(),
-        );
+        let config = cc.storage.map_or_else(Config::default, |storage| {
+            eframe::get_value(storage, "config").unwrap_or_default()
+        });
 
         Self::new_with_config(config)
     }
@@ -131,7 +130,7 @@ impl TicTacToeApp {
     ///
     /// See [`Self::new_with_config`]
     fn restart_game(&mut self) {
-        *self = Self::new_with_config(self.config)
+        *self = Self::new_with_config(self.config);
     }
 
     /// Update the board to reflect a cell being clicked.
