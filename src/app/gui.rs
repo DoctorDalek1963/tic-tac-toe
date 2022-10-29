@@ -62,8 +62,10 @@ impl TicTacToeApp {
                 {
                     self.update_cell(x, y);
 
-                    send_move_after_delay(self.board.clone(), self.mv_tx.clone());
-                    self.waiting_on_move = true;
+                    if self.config.playing_ai {
+                        send_move_after_delay(self.board.clone(), self.mv_tx.clone());
+                        self.waiting_on_move = true;
+                    }
                 }
             }
         }

@@ -107,9 +107,9 @@ impl TicTacToeApp {
         let (mv_tx, mv_rx) = mpsc::channel();
 
         let board = Board::new(config.player_shape.other());
-        let waiting_on_move = !config.player_plays_first;
+        let waiting_on_move = config.playing_ai && !config.player_plays_first;
 
-        let active_shape = if waiting_on_move {
+        let active_shape = if waiting_on_move && config.playing_ai {
             send_move_after_delay(board.clone(), mv_tx.clone());
             config.player_shape.other()
         } else {

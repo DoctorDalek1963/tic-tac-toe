@@ -12,6 +12,9 @@ pub(crate) struct Config {
 
     /// Which shape the player uses.
     pub(crate) player_shape: CellShape,
+
+    /// Whether the player is playing against an AI.
+    pub(crate) playing_ai: bool,
 }
 
 impl Default for Config {
@@ -19,6 +22,7 @@ impl Default for Config {
         Self {
             player_plays_first: true,
             player_shape: CellShape::X,
+            playing_ai: true,
         }
     }
 }
@@ -36,9 +40,17 @@ impl TicTacToeApp {
                 }
                 ui.set_style(style);
 
-                ui.checkbox(&mut self.config.player_plays_first, "Player plays first");
+                ui.checkbox(&mut self.config.playing_ai, "Play against AI");
+                ui.add_enabled(
+                    self.config.playing_ai,
+                    egui::Checkbox::new(&mut self.config.player_plays_first, "Player plays first"),
+                );
                 ui.horizontal(|ui| {
-                    ui.label("Player shape");
+                    ui.label(if self.config.playing_ai {
+                        "Player shape"
+                    } else {
+                        "First player shape"
+                    });
                     ui.radio_value(&mut self.config.player_shape, CellShape::X, "X");
                     ui.radio_value(&mut self.config.player_shape, CellShape::O, "O");
                 });
