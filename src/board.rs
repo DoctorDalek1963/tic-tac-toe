@@ -54,11 +54,13 @@ pub enum WinnerError {
 pub struct Board {
     /// This 2D array represents all the cells, and is indexed as `cells[x][y]`, with the layout as so:
     ///
+    /// ```text
     /// (0, 0) | (1, 0) | (2, 0)
     /// ------------------------
     /// (0, 1) | (1, 1) | (2, 1)
     /// ------------------------
     /// (0, 2) | (1, 2) | (2, 2)
+    /// ```
     pub cells: [[Option<CellShape>; 3]; 3],
 
     /// This is the shape that the AI will play as.

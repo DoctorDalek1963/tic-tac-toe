@@ -1,3 +1,5 @@
+//! This module handles app configuration.
+
 use super::TicTacToeApp;
 use crate::board::CellShape;
 use eframe::egui::{self, Context};
@@ -28,6 +30,7 @@ impl Default for Config {
 }
 
 impl TicTacToeApp {
+    /// Draw the settings window as a non-collapsible, non-resizable, closable `egui` window.
     pub(crate) fn draw_settings_window(&mut self, ctx: &Context) {
         egui::Window::new("Settings")
             .collapsible(false)

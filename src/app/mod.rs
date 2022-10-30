@@ -14,6 +14,7 @@ use eframe::{
 };
 use std::sync::mpsc;
 
+/// A simple type alias to represent either an AI move, or the board being full, so the AI can't play.
 type CoordResult = Result<Coord, ()>;
 
 /// Create a centered square in the given rect, taking up the given percentage of length.
