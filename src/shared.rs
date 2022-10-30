@@ -1,5 +1,6 @@
 //! This module provides various types that are shared between variants.
 
+use eframe::epaint::{Rect, Vec2};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -38,4 +39,12 @@ pub enum WinnerError {
     /// multiple winning triplets are found in [`Board::get_winner`].
     #[error("Both players have won")]
     MultipleWinners,
+}
+
+/// Create a centered square in the given rect, taking up the given percentage of length.
+pub fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
+    let Vec2 { x, y } = rect.max - rect.min;
+    let length = percent * x.min(y);
+
+    Rect::from_center_size(rect.center(), Vec2::splat(length))
 }

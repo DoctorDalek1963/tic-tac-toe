@@ -8,3 +8,11 @@ pub type LocalCoord = (usize, usize);
 /// The first 2 numbers are the `x` and `y` coordinates of the intended local board, and then the
 /// [`LocalCoord`] is the coordinate of the desired cell within that local board.
 pub type GlobalCoord = (usize, usize, LocalCoord);
+
+pub mod app;
+pub mod board;
+
+pub use self::app::TicTacToeApp;
+
+#[cfg(test)]
+mod test_utils;

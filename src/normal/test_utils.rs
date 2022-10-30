@@ -9,7 +9,7 @@
 /// make_board!(X E O; X O E; E E E);
 /// ```
 /// would look like this:
-/// ```
+/// ```text
 /// X| |O
 /// -----
 /// X|O|

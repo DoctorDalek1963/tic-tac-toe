@@ -5,20 +5,12 @@ mod gui;
 
 use self::config::Config;
 use super::{board::Board, Coord};
-use crate::shared::CellShape;
+use crate::shared::{centered_square_in_rect, CellShape};
 use eframe::{
-    egui::{self, Context, Rect},
-    epaint::{Color32, Vec2},
+    egui::{self, Context},
+    epaint::Color32,
 };
 use std::sync::mpsc;
-
-/// Create a centered square in the given rect, taking up the given percentage of length.
-fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
-    let Vec2 { x, y } = rect.max - rect.min;
-    let length = percent * x.min(y);
-
-    Rect::from_center_size(rect.center(), Vec2::splat(length))
-}
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
