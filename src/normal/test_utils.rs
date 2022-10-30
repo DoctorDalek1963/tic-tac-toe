@@ -21,19 +21,19 @@ macro_rules! make_board {
         $crate::normal::board::Board {
             cells: [
                 [
-                    $crate::test_utils::MockCellShape::$a.into(),
-                    $crate::test_utils::MockCellShape::$d.into(),
-                    $crate::test_utils::MockCellShape::$g.into(),
+                    $crate::test_utils::mock_cell_shape!($a),
+                    $crate::test_utils::mock_cell_shape!($d),
+                    $crate::test_utils::mock_cell_shape!($g),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$b.into(),
-                    $crate::test_utils::MockCellShape::$e.into(),
-                    $crate::test_utils::MockCellShape::$h.into(),
+                    $crate::test_utils::mock_cell_shape!($b),
+                    $crate::test_utils::mock_cell_shape!($e),
+                    $crate::test_utils::mock_cell_shape!($h),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$c.into(),
-                    $crate::test_utils::MockCellShape::$f.into(),
-                    $crate::test_utils::MockCellShape::$i.into(),
+                    $crate::test_utils::mock_cell_shape!($c),
+                    $crate::test_utils::mock_cell_shape!($f),
+                    $crate::test_utils::mock_cell_shape!($i),
                 ],
             ],
             ai_shape: $crate::shared::CellShape::O,

@@ -10,18 +10,18 @@ macro_rules! _make_local_board {
             cells: [
                 [
                     None,
-                    $crate::test_utils::MockCellShape::$d.into(),
-                    $crate::test_utils::MockCellShape::$g.into(),
+                    $crate::test_utils::mock_cell_shape!($d),
+                    $crate::test_utils::mock_cell_shape!($g),
                 ],
                 [
                     None,
-                    $crate::test_utils::MockCellShape::$e.into(),
-                    $crate::test_utils::MockCellShape::$h.into(),
+                    $crate::test_utils::mock_cell_shape!($e),
+                    $crate::test_utils::mock_cell_shape!($h),
                 ],
                 [
                     None,
-                    $crate::test_utils::MockCellShape::$f.into(),
-                    $crate::test_utils::MockCellShape::$i.into(),
+                    $crate::test_utils::mock_cell_shape!($f),
+                    $crate::test_utils::mock_cell_shape!($i),
                 ],
             ],
         }
@@ -30,19 +30,19 @@ macro_rules! _make_local_board {
         $crate::ultimate::board::LocalBoard {
             cells: [
                 [
-                    $crate::test_utils::MockCellShape::$a.into(),
+                    $crate::test_utils::mock_cell_shape!($a),
                     None,
-                    $crate::test_utils::MockCellShape::$g.into(),
+                    $crate::test_utils::mock_cell_shape!($g),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$b.into(),
+                    $crate::test_utils::mock_cell_shape!($b),
                     None,
-                    $crate::test_utils::MockCellShape::$h.into(),
+                    $crate::test_utils::mock_cell_shape!($h),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$c.into(),
+                    $crate::test_utils::mock_cell_shape!($c),
                     None,
-                    $crate::test_utils::MockCellShape::$i.into(),
+                    $crate::test_utils::mock_cell_shape!($i),
                 ],
             ],
         }
@@ -51,18 +51,18 @@ macro_rules! _make_local_board {
         $crate::ultimate::board::LocalBoard {
             cells: [
                 [
-                    $crate::test_utils::MockCellShape::$a.into(),
-                    $crate::test_utils::MockCellShape::$d.into(),
+                    $crate::test_utils::mock_cell_shape!($a),
+                    $crate::test_utils::mock_cell_shape!($d),
                     None,
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$b.into(),
-                    $crate::test_utils::MockCellShape::$e.into(),
+                    $crate::test_utils::mock_cell_shape!($b),
+                    $crate::test_utils::mock_cell_shape!($e),
                     None,
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$c.into(),
-                    $crate::test_utils::MockCellShape::$f.into(),
+                    $crate::test_utils::mock_cell_shape!($c),
+                    $crate::test_utils::mock_cell_shape!($f),
                     None,
                 ],
             ],
@@ -71,27 +71,27 @@ macro_rules! _make_local_board {
     ((E; E; $g:ident $h:ident $i:ident)) => {
         $crate::ultimate::board::LocalBoard {
             cells: [
-                [None, None, $crate::test_utils::MockCellShape::$g.into()],
-                [None, None, $crate::test_utils::MockCellShape::$h.into()],
-                [None, None, $crate::test_utils::MockCellShape::$i.into()],
+                [None, None, $crate::test_utils::mock_cell_shape!($g)],
+                [None, None, $crate::test_utils::mock_cell_shape!($h)],
+                [None, None, $crate::test_utils::mock_cell_shape!($i)],
             ],
         }
     };
     ((E; $d:ident $e:ident $f:ident; E)) => {
         $crate::ultimate::board::LocalBoard {
             cells: [
-                [None, $crate::test_utils::MockCellShape::$d.into(), None],
-                [None, $crate::test_utils::MockCellShape::$e.into(), None],
-                [None, $crate::test_utils::MockCellShape::$f.into(), None],
+                [None, $crate::test_utils::mock_cell_shape!($d), None],
+                [None, $crate::test_utils::mock_cell_shape!($e), None],
+                [None, $crate::test_utils::mock_cell_shape!($f), None],
             ],
         }
     };
     (($a:ident $b:ident $c:ident; E; E)) => {
         $crate::ultimate::board::LocalBoard {
             cells: [
-                [$crate::test_utils::MockCellShape::$a.into(), None, None],
-                [$crate::test_utils::MockCellShape::$b.into(), None, None],
-                [$crate::test_utils::MockCellShape::$c.into(), None, None],
+                [$crate::test_utils::mock_cell_shape!($a), None, None],
+                [$crate::test_utils::mock_cell_shape!($b), None, None],
+                [$crate::test_utils::mock_cell_shape!($c), None, None],
             ],
         }
     };
@@ -99,19 +99,19 @@ macro_rules! _make_local_board {
         $crate::ultimate::board::LocalBoard {
             cells: [
                 [
-                    $crate::test_utils::MockCellShape::$a.into(),
-                    $crate::test_utils::MockCellShape::$d.into(),
-                    $crate::test_utils::MockCellShape::$g.into(),
+                    $crate::test_utils::mock_cell_shape!($a),
+                    $crate::test_utils::mock_cell_shape!($d),
+                    $crate::test_utils::mock_cell_shape!($g),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$b.into(),
-                    $crate::test_utils::MockCellShape::$e.into(),
-                    $crate::test_utils::MockCellShape::$h.into(),
+                    $crate::test_utils::mock_cell_shape!($b),
+                    $crate::test_utils::mock_cell_shape!($e),
+                    $crate::test_utils::mock_cell_shape!($h),
                 ],
                 [
-                    $crate::test_utils::MockCellShape::$c.into(),
-                    $crate::test_utils::MockCellShape::$f.into(),
-                    $crate::test_utils::MockCellShape::$i.into(),
+                    $crate::test_utils::mock_cell_shape!($c),
+                    $crate::test_utils::mock_cell_shape!($f),
+                    $crate::test_utils::mock_cell_shape!($i),
                 ],
             ],
         }
