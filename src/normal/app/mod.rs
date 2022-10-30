@@ -4,10 +4,8 @@ mod config;
 mod gui;
 
 use self::config::Config;
-use crate::{
-    board::{Board, CellShape},
-    Coord,
-};
+use super::{board::Board, Coord};
+use crate::shared::CellShape;
 use eframe::{
     egui::{self, Context, Rect},
     epaint::{Color32, Vec2},
@@ -202,8 +200,8 @@ impl eframe::App for TicTacToeApp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::make_board;
-    use crate::Coord;
+    use crate::normal::test_utils::make_board;
+    use crate::normal::Coord;
 
     #[test]
     fn update_cell_test() {

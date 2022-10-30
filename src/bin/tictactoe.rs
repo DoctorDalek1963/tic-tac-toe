@@ -1,6 +1,6 @@
 //! This crate  simply runs the tic-tac-toe GUI app.
 
-use tictactoe::app::TicTacToeApp;
+use tictactoe::normal::TicTacToeApp;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {

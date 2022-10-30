@@ -1,53 +1,15 @@
 //! This module handles the board and the AI player.
 
-use crate::Coord;
+use super::Coord;
+use crate::shared::{CellShape, WinnerError};
 use itertools::Itertools;
 use rand::seq::SliceRandom;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
 use rayon::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 use crate::fake_par_iter::VecParIter;
-
-/// An enum for the shape of a cell on the [`Board`].
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub enum CellShape {
-    X,
-    O,
-}
-
-impl CellShape {
-    /// Return the opposite of the current shape.
-    #[must_use]
-    pub fn other(&self) -> Self {
-        match self {
-            Self::X => Self::O,
-            Self::O => Self::X,
-        }
-    }
-}
-
-/// A possible error that could occur when trying to find a winner,
-#[derive(Debug, Error, PartialEq)]
-pub enum WinnerError {
-    /// Neither player has won, but the board is not full, so a win could occur.
-    #[error("Neither player has won yet")]
-    NoWinnerYet,
-
-    /// The board is full and neither player won.
-    #[error("Board is full but no-one has won")]
-    BoardFullNoWinner,
-
-    /// Both players have won.
-    ///
-    /// This state should never be achievable in normal play, but we need to handle the case where
-    /// multiple winning triplets are found in [`Board::get_winner`].
-    #[error("Both players have won")]
-    MultipleWinners,
-}
 
 /// A struct to represent a simple tic-tac-toe board.
 #[derive(Clone, Debug, PartialEq)]
@@ -276,7 +238,7 @@ impl Default for Board {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::make_board;
+    use crate::normal::test_utils::make_board;
 
     #[test]
     fn get_winner_test() {

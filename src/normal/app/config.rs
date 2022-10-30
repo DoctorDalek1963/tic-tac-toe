@@ -1,7 +1,7 @@
 //! This module handles app configuration.
 
 use super::TicTacToeApp;
-use crate::board::CellShape;
+use crate::shared::CellShape;
 use eframe::egui::{self, Context};
 use serde::{Deserialize, Serialize};
 

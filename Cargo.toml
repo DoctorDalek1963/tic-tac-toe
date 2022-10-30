@@ -31,5 +31,5 @@ stdweb = "0.4.20"
 criterion = "0.4.0"
 
 [[bench]]
-name = "eval_and_minimax"
+name = "eval_and_gen_move"
 harness = false
