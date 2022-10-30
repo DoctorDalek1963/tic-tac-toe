@@ -88,7 +88,7 @@ impl TicTacToeApp {
     /// Create a new app, attempting to restore previous [`Config`], or using the default config.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         let config = cc.storage.map_or_else(Config::default, |storage| {
-            eframe::get_value(storage, "config").unwrap_or_default()
+            eframe::get_value(storage, "normal_config").unwrap_or_default()
         });
 
         Self::new_with_config(config)
@@ -193,7 +193,7 @@ impl eframe::App for TicTacToeApp {
     }
 
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        eframe::set_value(storage, "config", &self.config);
+        eframe::set_value(storage, "normal_config", &self.config);
     }
 }
 
