@@ -83,6 +83,7 @@ impl TicTacToeApp {
             }
         }
 
+        // Draw the winning line
         if let Ok((_, [start_coord, _, end_coord])) = self.board.get_winner() {
             let Pos2 { x: min_x, y: min_y } = rect.min;
             let Pos2 { x: max_x, y: max_y } = rect.max;
@@ -182,7 +183,11 @@ impl TicTacToeApp {
                 points: [start, end],
                 stroke: Stroke {
                     width: stroke_width,
-                    color: Color32::WHITE,
+                    color: if ui.ctx().style().visuals.dark_mode {
+                        Color32::WHITE
+                    } else {
+                        Color32::BLACK
+                    },
                 },
             });
         }
