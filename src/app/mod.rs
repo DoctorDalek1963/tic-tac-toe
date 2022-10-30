@@ -14,9 +14,6 @@ use eframe::{
 };
 use std::sync::mpsc;
 
-/// A simple type alias to represent either an AI move, or the board being full, so the AI can't play.
-type CoordResult = Result<Coord, ()>;
-
 /// Create a centered square in the given rect, taking up the given percentage of length.
 fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
     let Vec2 { x, y } = rect.max - rect.min;
@@ -27,7 +24,7 @@ fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
-fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
+fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
     use std::{
         thread,
         time::{Duration, Instant},
@@ -43,7 +40,7 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(target_arch = "wasm32")]
-fn send_move_after_delay(board: Board, tx: mpsc::Sender<CoordResult>) {
+fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
     use stdweb::web::Date;
 
     let start = Date::now(); // millis
@@ -76,11 +73,11 @@ pub struct TicTacToeApp {
 
     /// The AI moves are computed in a background thread to make the UI more snappy. This is the
     /// sender that we pass to the background thread to get the AI move back.
-    mv_tx: mpsc::Sender<CoordResult>,
+    mv_tx: mpsc::Sender<Option<Coord>>,
 
     /// The AI moves are computed in a background thread to make the UI more snappy. This is the
     /// receiver that receives the computed AI moves.
-    mv_rx: mpsc::Receiver<CoordResult>,
+    mv_rx: mpsc::Receiver<Option<Coord>>,
 }
 
 impl Default for TicTacToeApp {

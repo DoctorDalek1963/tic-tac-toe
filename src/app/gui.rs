@@ -77,7 +77,7 @@ impl TicTacToeApp {
         }
 
         if self.waiting_on_move {
-            if let Ok(Ok((x, y))) = self.mv_rx.try_recv() {
+            if let Ok(Some((x, y))) = self.mv_rx.try_recv() {
                 self.update_cell(x, y);
                 self.waiting_on_move = false;
             }

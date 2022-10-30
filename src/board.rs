@@ -224,41 +224,44 @@ impl Board {
     ///
     /// # Errors
     ///
-    /// If the board is full, then we return `Err(())`. We return unit because a full board is the
-    /// only possible error.
-    pub fn generate_ai_move(&self) -> Result<Coord, ()> {
+    /// If the board is full, then we return `None`.
+    pub fn generate_ai_move(&self) -> Option<Coord> {
         if self.empty_cells().is_empty() {
-            return Err(());
+            return None;
         }
 
         let empty_cells = self.empty_cells();
 
         // Go in the center when possible
         if empty_cells.contains(&(1, 1)) {
-            Ok((1, 1))
+            Some((1, 1))
 
         // When there's only one shape on the board and the center is full
         } else if empty_cells.len() >= 8 {
-            Ok(**[(0, 0), (2, 2), (0, 2), (2, 0)]
-                .iter()
-                .filter(|&x| empty_cells.contains(x))
-                .collect::<Vec<_>>()
-                .choose(&mut rand::thread_rng())
-                .unwrap())
+            Some(
+                **[(0, 0), (2, 2), (0, 2), (2, 0)]
+                    .iter()
+                    .filter(|&x| empty_cells.contains(x))
+                    .collect::<Vec<_>>()
+                    .choose(&mut rand::thread_rng())
+                    .unwrap(),
+            )
         } else {
-            Ok(empty_cells
-                .par_iter()
-                .map(|&(x, y)| -> (Coord, i8) {
-                    let mut new_board = self.clone();
-                    new_board.cells[x][y] = Some(self.ai_shape);
-                    ((x, y), new_board.evaluate_position(self.ai_shape.other()))
-                })
-                .collect::<Vec<_>>()
-                .iter()
-                .max_set_by_key(|&(_, x)| x)
-                .choose(&mut rand::thread_rng())
-                .unwrap()
-                .0)
+            Some(
+                empty_cells
+                    .par_iter()
+                    .map(|&(x, y)| -> (Coord, i8) {
+                        let mut new_board = self.clone();
+                        new_board.cells[x][y] = Some(self.ai_shape);
+                        ((x, y), new_board.evaluate_position(self.ai_shape.other()))
+                    })
+                    .collect::<Vec<_>>()
+                    .iter()
+                    .max_set_by_key(|&(_, x)| x)
+                    .choose(&mut rand::thread_rng())
+                    .unwrap()
+                    .0,
+            )
         }
     }
 }
@@ -417,47 +420,47 @@ mod tests {
     }
 
     #[test]
-    fn minimax_position_test() {
+    fn generate_ai_move_test() {
         //  | |X
         //  |X|O
         //  | |
         let board = make_board!(E E X; E X O; E E E);
-        assert_eq!(board.generate_ai_move(), Ok((0, 2)));
+        assert_eq!(board.generate_ai_move(), Some((0, 2)));
 
         // X|O|X
         // X|O|
         //  | |
         let board = make_board!(X O X; X O E; E E E);
-        assert_eq!(board.generate_ai_move(), Ok((1, 2)));
+        assert_eq!(board.generate_ai_move(), Some((1, 2)));
 
         //  | |O
         //  |X|
         //  | |X
         let board = make_board!(E E O; E X E; E E X);
-        assert_eq!(board.generate_ai_move(), Ok((0, 0)));
+        assert_eq!(board.generate_ai_move(), Some((0, 0)));
 
         // O| |O
         //  |X|
         // X| |X
         let board = make_board!(O E O; E X E; X E X);
-        assert_eq!(board.generate_ai_move(), Ok((1, 0)));
+        assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O| |O
         //  |X|
         //  |X|X
         let board = make_board!(O E O; E X E; E X X);
-        assert_eq!(board.generate_ai_move(), Ok((1, 0)));
+        assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O|X|X
         // X|O|O
         // O|X|X
         let board = make_board!(O X X; X O O; O X X);
-        assert_eq!(board.generate_ai_move(), Err(()));
+        assert_eq!(board.generate_ai_move(), None);
 
         // O|O|X
         // O|X|X
         // O|X|X
         let board = make_board!(O O X; O X X; O X X);
-        assert_eq!(board.generate_ai_move(), Err(()));
+        assert_eq!(board.generate_ai_move(), None);
     }
 }
