@@ -6,7 +6,7 @@ pub type Coord = (usize, usize);
 pub mod app;
 pub mod board;
 
-pub use self::app::TicTacToeApp;
+pub use self::app::NormalTTTApp;
 
 #[cfg(test)]
 mod test_utils;

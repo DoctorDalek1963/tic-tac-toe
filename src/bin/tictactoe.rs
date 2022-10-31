@@ -1,6 +1,6 @@
 //! This crate  simply runs the tic-tac-toe GUI app.
 
-use tictactoe::normal::TicTacToeApp;
+use tictactoe::app::TTTApp;
 
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
@@ -8,7 +8,7 @@ fn main() {
     eframe::run_native(
         "Tic-tac-toe",
         options,
-        Box::new(|cc| Box::new(TicTacToeApp::new(cc))),
+        Box::new(|cc| Box::new(TTTApp::new(cc))),
     );
 }
 
@@ -20,7 +20,7 @@ fn main() {
     eframe::start_web(
         "main_canvas_id",
         options,
-        Box::new(|cc| Box::new(TicTacToeApp::new(cc))),
+        Box::new(|cc| Box::new(TTTApp::new(cc))),
     )
     .unwrap();
 }

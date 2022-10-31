@@ -1,18 +1,29 @@
-use super::{board::GlobalBoard, GlobalCoord};
-use crate::shared::CellShape;
+//! This module handles the `egui` interface to the game.
 
-pub struct TicTacToeApp {
+use eframe::egui;
+
+use super::{board::GlobalBoard, GlobalCoord};
+use crate::{app::TTTVariantApp, shared::CellShape};
+
+/// The struct to hold the state of the app.
+pub struct UltimateTTTApp {
+    /// The full global board.
     global_board: GlobalBoard,
+
+    /// The shape that will be used for the next cell to be placed.
+    ///
+    /// See [`update_cell`](UltimateTTTApp::update_cell).
     active_shape: CellShape,
 }
 
-impl Default for TicTacToeApp {
+impl Default for UltimateTTTApp {
     fn default() -> Self {
         Self::new(CellShape::X)
     }
 }
 
-impl TicTacToeApp {
+impl UltimateTTTApp {
+    /// Create a new app with the given active shape.
     pub fn new(active_shape: CellShape) -> Self {
         Self {
             global_board: GlobalBoard::new(active_shape.other()),
@@ -20,6 +31,9 @@ impl TicTacToeApp {
         }
     }
 
+    /// Update the board to reflect a cell being clicked.
+    ///
+    /// This method uses [`active_shape`](UltimateTTTApp::active_shape) as the shape to place in the cell.
     fn update_cell(&mut self, coord: GlobalCoord) {
         let (x, y, (lx, ly)) = coord;
 
@@ -32,6 +46,19 @@ impl TicTacToeApp {
             lb.cells[lx][ly] = Some(self.active_shape);
             self.active_shape = self.active_shape.other();
         }
+    }
+}
+
+impl TTTVariantApp for UltimateTTTApp {
+    fn new_app(_storage: Option<&dyn eframe::Storage>) -> Self
+    where
+        Self: Sized,
+    {
+        Self::default()
+    }
+
+    fn show_ui(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| ui.label("Ultimate!"));
     }
 }
 
@@ -85,7 +112,7 @@ mod tests {
             ),
         ];
 
-        let mut app = TicTacToeApp::default();
+        let mut app = UltimateTTTApp::default();
         assert_eq!(app.global_board, GlobalBoard::default());
 
         for (coord, global_board) in moves_map {

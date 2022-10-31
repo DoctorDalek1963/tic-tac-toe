@@ -12,7 +12,7 @@ pub type GlobalCoord = (usize, usize, LocalCoord);
 pub mod app;
 pub mod board;
 
-pub use self::app::TicTacToeApp;
+pub use self::app::UltimateTTTApp;
 
 #[cfg(test)]
 mod test_utils;

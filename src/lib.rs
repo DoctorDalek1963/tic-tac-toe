@@ -5,6 +5,7 @@
 pub mod normal;
 pub mod ultimate;
 
+pub mod app;
 pub mod shared;
 
 #[cfg(target_arch = "wasm32")]

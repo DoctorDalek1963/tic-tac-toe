@@ -1,16 +1,16 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
-use super::{centered_square_in_rect, send_move_after_delay, TicTacToeApp};
+use super::{centered_square_in_rect, send_move_after_delay, NormalTTTApp};
 use crate::shared::CellShape;
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
     epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
 };
 
-impl TicTacToeApp {
+impl NormalTTTApp {
     /// Draw the board in the given rect.
     ///
-    /// This method also handles all the updating of the internal [`Board`](crate::board::Board)
+    /// This method also handles all the updating of the internal [`Board`](crate::normal::board::Board)
     /// when cells are clicked, and triggers an AI move with [`send_move_after_delay`] if AI is enabled.
     pub(crate) fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
         ctx.request_repaint();

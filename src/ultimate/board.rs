@@ -1,5 +1,12 @@
+//! This module handles the local and global boards and the AI player.
+//!
+//! In a game of [ultimate tic-tac-toe](https://en.wikipedia.org/wiki/Ultimate_tic-tac-toe), there
+//! is one global board. This global board is a 3x3 grid of local boards, each of which is a 3x3
+//! grid of cells.
+
 use crate::shared::CellShape;
 
+/// A struct to represent a simple local board with a grid of cells.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct LocalBoard {
     /// This 2D array represents all the cells, and is indexed as `cells[x][y]`, with the layout as so:
@@ -15,6 +22,7 @@ pub struct LocalBoard {
 }
 
 impl LocalBoard {
+    /// Create a new, empty local board.
     pub fn new() -> Self {
         Self {
             cells: [[None; 3]; 3],
@@ -22,6 +30,7 @@ impl LocalBoard {
     }
 }
 
+/// A struct to represent the global board, with a grid of [`LocalBoard`]s.
 #[derive(Clone, Debug, PartialEq)]
 pub struct GlobalBoard {
     /// This 2D array represents all the [`LocalBoard`]s, and is indexed as `cells[x][y]`, with the layout as so:
@@ -49,6 +58,7 @@ impl Default for GlobalBoard {
 }
 
 impl GlobalBoard {
+    /// Create a new, empty global board.
     pub fn new(ai_shape: CellShape) -> Self {
         Self {
             local_boards: [[LocalBoard::new(); 3]; 3],

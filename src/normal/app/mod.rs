@@ -5,7 +5,10 @@ mod gui;
 
 use self::config::Config;
 use super::{board::Board, Coord};
-use crate::shared::{centered_square_in_rect, CellShape};
+use crate::{
+    app::TTTVariantApp,
+    shared::{centered_square_in_rect, CellShape},
+};
 use eframe::{
     egui::{self, Context},
     epaint::Color32,
@@ -43,7 +46,7 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
 }
 
 /// The struct to hold the state of the app.
-pub struct TicTacToeApp {
+pub struct NormalTTTApp {
     /// The configuration of the app.
     config: Config,
 
@@ -55,7 +58,7 @@ pub struct TicTacToeApp {
 
     /// The shape that will be used for the next cell to be placed.
     ///
-    /// See [`update_cell`](TicTacToeApp::update_cell).
+    /// See [`update_cell`](NormalTTTApp::update_cell).
     active_shape: CellShape,
 
     /// Whether we're currently waiting for the AI to make a move.
@@ -70,22 +73,13 @@ pub struct TicTacToeApp {
     mv_rx: mpsc::Receiver<Option<Coord>>,
 }
 
-impl Default for TicTacToeApp {
+impl Default for NormalTTTApp {
     fn default() -> Self {
         Self::new_with_config(Config::default())
     }
 }
 
-impl TicTacToeApp {
-    /// Create a new app, attempting to restore previous [`Config`], or using the default config.
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        let config = cc.storage.map_or_else(Config::default, |storage| {
-            eframe::get_value(storage, "normal_config").unwrap_or_default()
-        });
-
-        Self::new_with_config(config)
-    }
-
+impl NormalTTTApp {
     /// Create a new app with the given config.
     ///
     /// If [`Config::player_plays_first`] is false, then we also start an AI move in the background
@@ -123,7 +117,7 @@ impl TicTacToeApp {
 
     /// Update the board to reflect a cell being clicked.
     ///
-    /// This method uses [`active_shape`](TicTacToeApp::active_shape) as the shape to place in the cell.
+    /// This method uses [`active_shape`](NormalTTTApp::active_shape) as the shape to place in the cell.
     fn update_cell(&mut self, x: usize, y: usize) {
         if x > 2 || y > 2 {
             return;
@@ -136,9 +130,20 @@ impl TicTacToeApp {
     }
 }
 
-impl eframe::App for TicTacToeApp {
+impl TTTVariantApp for NormalTTTApp {
+    fn new_app(storage: Option<&dyn eframe::Storage>) -> Self
+    where
+        Self: Sized,
+    {
+        let config = storage.map_or_else(Config::default, |storage| {
+            eframe::get_value(storage, "normal_config").unwrap_or_default()
+        });
+
+        Self::new_with_config(config)
+    }
+
     /// Show the app itself.
-    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+    fn show_ui(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             // Show the restart game and settings buttons
             ui.horizontal(|ui| {
@@ -184,7 +189,7 @@ impl eframe::App for TicTacToeApp {
         }
     }
 
-    fn save(&mut self, storage: &mut dyn eframe::Storage) {
+    fn save_config(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, "normal_config", &self.config);
     }
 }
@@ -217,7 +222,7 @@ mod tests {
         ];
 
         for moves_map in [map_1, map_2] {
-            let mut app = TicTacToeApp::default();
+            let mut app = NormalTTTApp::default();
             assert_eq!(app.board, Board::default());
 
             for ((x, y), board) in moves_map {

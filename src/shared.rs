@@ -4,7 +4,7 @@ use eframe::epaint::{Rect, Vec2};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-/// An enum for the shape of a cell on the [`Board`].
+/// An enum for the shape of a cell on the board.
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
 pub enum CellShape {
     X,
@@ -36,7 +36,7 @@ pub enum WinnerError {
     /// Both players have won.
     ///
     /// This state should never be achievable in normal play, but we need to handle the case where
-    /// multiple winning triplets are found in [`Board::get_winner`].
+    /// multiple winning triplets are found in `get_winner()` methods for variant boards.
     #[error("Both players have won")]
     MultipleWinners,
 }
