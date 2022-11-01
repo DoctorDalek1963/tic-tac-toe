@@ -1,9 +1,13 @@
 //! This module handles the `egui` interface to the game.
 
-use eframe::egui;
+mod gui;
 
 use super::{board::GlobalBoard, GlobalCoord};
-use crate::{app::TTTVariantApp, shared::CellShape};
+use crate::{
+    app::TTTVariantApp,
+    shared::{centered_square_in_rect, CellShape},
+};
+use eframe::egui;
 
 /// The struct to hold the state of the app.
 pub struct UltimateTTTApp {
@@ -58,7 +62,9 @@ impl TTTVariantApp for UltimateTTTApp {
     }
 
     fn show_ui(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| ui.label("Ultimate!"));
+        egui::CentralPanel::default().show(ctx, |ui| {
+            self.draw_global_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9))
+        });
     }
 }
 
