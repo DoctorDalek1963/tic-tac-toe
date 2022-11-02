@@ -52,8 +52,7 @@ impl eframe::App for TTTApp {
                 egui::CentralPanel::default().show(ctx, |ui| {
                     // Make the button font size bigger
                     let mut style = (*ctx.style()).clone();
-                    let original_button_font =
-                        style.text_styles.get(&ButtonTextStyle).map(|id| id.clone());
+                    let original_button_font = style.text_styles.get(&ButtonTextStyle).cloned();
 
                     style
                         .text_styles

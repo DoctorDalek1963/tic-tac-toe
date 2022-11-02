@@ -63,7 +63,7 @@ impl TTTVariantApp for UltimateTTTApp {
 
     fn show_ui(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            self.draw_global_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9))
+            self.draw_global_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9));
         });
     }
 }
