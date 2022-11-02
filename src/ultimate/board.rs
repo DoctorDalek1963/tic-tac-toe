@@ -48,7 +48,10 @@ pub struct GlobalBoard {
     ///
     /// Board positions where this shape wins are considered good, and positions where the other
     /// shape wins are considered bad.
-    pub ai_shape: CellShape,
+    ai_shape: CellShape,
+
+    /// The local board in which the next move must be played.
+    next_local_board: Option<(usize, usize)>,
 }
 
 impl Default for GlobalBoard {
@@ -63,6 +66,22 @@ impl GlobalBoard {
         Self {
             local_boards: [[LocalBoard::new(); 3]; 3],
             ai_shape,
+            next_local_board: None,
+        }
+    }
+
+    /// Return the coordinates of the local board in which the next move must be played.
+    pub(crate) fn next_local_board(&self) -> Option<(usize, usize)> {
+        self.next_local_board
+    }
+}
+
+#[cfg(test)]
+impl GlobalBoard {
+    pub(crate) fn with_local_boards(local_boards: [[LocalBoard; 3]; 3]) -> Self {
+        Self {
+            local_boards,
+            ..Default::default()
         }
     }
 }

@@ -120,26 +120,23 @@ macro_rules! _make_local_board {
 
 macro_rules! make_board {
     ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {
-        $crate::ultimate::board::GlobalBoard {
-            local_boards: [
-                [
-                    $crate::ultimate::test_utils::_make_local_board!($a),
-                    $crate::ultimate::test_utils::_make_local_board!($d),
-                    $crate::ultimate::test_utils::_make_local_board!($g),
-                ],
-                [
-                    $crate::ultimate::test_utils::_make_local_board!($b),
-                    $crate::ultimate::test_utils::_make_local_board!($e),
-                    $crate::ultimate::test_utils::_make_local_board!($h),
-                ],
-                [
-                    $crate::ultimate::test_utils::_make_local_board!($c),
-                    $crate::ultimate::test_utils::_make_local_board!($f),
-                    $crate::ultimate::test_utils::_make_local_board!($i),
-                ],
+        $crate::ultimate::board::GlobalBoard::with_local_boards([
+            [
+                $crate::ultimate::test_utils::_make_local_board!($a),
+                $crate::ultimate::test_utils::_make_local_board!($d),
+                $crate::ultimate::test_utils::_make_local_board!($g),
             ],
-            ai_shape: $crate::shared::CellShape::O,
-        }
+            [
+                $crate::ultimate::test_utils::_make_local_board!($b),
+                $crate::ultimate::test_utils::_make_local_board!($e),
+                $crate::ultimate::test_utils::_make_local_board!($h),
+            ],
+            [
+                $crate::ultimate::test_utils::_make_local_board!($c),
+                $crate::ultimate::test_utils::_make_local_board!($f),
+                $crate::ultimate::test_utils::_make_local_board!($i),
+            ],
+        ])
     };
 }
 
