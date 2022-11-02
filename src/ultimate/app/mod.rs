@@ -71,14 +71,14 @@ impl TTTVariantApp for UltimateTTTApp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ultimate::test_utils::make_board;
+    use crate::ultimate::test_utils::make_global_board;
 
     #[test]
     fn update_cell_test() {
         let moves_map: Vec<(GlobalCoord, GlobalBoard)> = vec![
             (
                 (1, 1, (1, 1)),
-                make_board! {
+                make_global_board! {
                     () () ();
                     () (E; E X E; E) ();
                     () () ()
@@ -86,7 +86,7 @@ mod tests {
             ),
             (
                 (1, 1, (0, 0)),
-                make_board! {
+                make_global_board! {
                     () () ();
                     () (O E E; E X E; E) ();
                     () () ()
@@ -94,7 +94,7 @@ mod tests {
             ),
             (
                 (0, 0, (0, 1)),
-                make_board! {
+                make_global_board! {
                     (E; X E E; E) () ();
                     () (O E E; E X E; E) ();
                     () () ()
@@ -102,7 +102,7 @@ mod tests {
             ),
             (
                 (0, 1, (1, 1)),
-                make_board! {
+                make_global_board! {
                     (E; X E E; E) () ();
                     (E; E O E; E) (O E E; E X E; E) ();
                     () () ()
@@ -110,7 +110,7 @@ mod tests {
             ),
             (
                 (1, 1, (0, 2)),
-                make_board! {
+                make_global_board! {
                     (E; X E E; E) () ();
                     (E; E O E; E) (O E E; E X E; X E E) ();
                     () () ()

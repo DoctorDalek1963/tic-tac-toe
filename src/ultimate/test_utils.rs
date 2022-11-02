@@ -1,3 +1,22 @@
+/// Make a local board with various syntaxes.
+///
+/// Use `()` for an empty board, or specify a whole board, using `X` or `O` respectively, and `E`
+/// for an empty cell.
+///
+/// # Example
+///
+/// The call:
+/// ```
+/// _make_local_board!(X E O; X O E; E E E);
+/// ```
+/// would look like this:
+/// ```text
+/// X| |O
+/// -----
+/// X|O|
+/// -----
+///  | |
+/// ```
 macro_rules! _make_local_board {
     (()) => {
         $crate::ultimate::board::LocalBoard::new()
@@ -118,7 +137,8 @@ macro_rules! _make_local_board {
     };
 }
 
-macro_rules! make_board {
+/// Make a global board with the given local board macro syntaxes. See [`_make_local_board`].
+macro_rules! make_global_board {
     ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {
         $crate::ultimate::board::GlobalBoard::with_local_boards([
             [
@@ -140,23 +160,80 @@ macro_rules! make_board {
     };
 }
 
-pub(crate) use {_make_local_board, make_board};
+pub(crate) use {_make_local_board, make_global_board};
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{shared::CellShape, ultimate::board::GlobalBoard};
+    use crate::{
+        shared::CellShape,
+        ultimate::board::{GlobalBoard, LocalBoard},
+    };
+
+    #[test]
+    fn make_local_board_macro_test() {
+        assert_eq!(_make_local_board!(()), LocalBoard::new());
+        assert_eq!(_make_local_board!((E; E; E)), LocalBoard::new());
+
+        // X|X|
+        // -----
+        //  |O|
+        // -----
+        // O| |
+        let board = _make_local_board!((X X E; E O E; O E E));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
+        assert_eq!(board.cells[1][0], Some(CellShape::X));
+        assert_eq!(board.cells[2][0], None);
+        assert_eq!(board.cells[0][1], None);
+        assert_eq!(board.cells[1][1], Some(CellShape::O));
+        assert_eq!(board.cells[2][1], None);
+        assert_eq!(board.cells[0][2], Some(CellShape::O));
+        assert_eq!(board.cells[1][2], None);
+        assert_eq!(board.cells[2][2], None);
+
+        // X| |O
+        // -----
+        // X|O|
+        // -----
+        //  | |
+        let board = _make_local_board!((X E O; X O E; E));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
+        assert_eq!(board.cells[1][0], None);
+        assert_eq!(board.cells[2][0], Some(CellShape::O));
+        assert_eq!(board.cells[0][1], Some(CellShape::X));
+        assert_eq!(board.cells[1][1], Some(CellShape::O));
+        assert_eq!(board.cells[2][1], None);
+        assert_eq!(board.cells[0][2], None);
+        assert_eq!(board.cells[1][2], None);
+        assert_eq!(board.cells[2][2], None);
+
+        // X|X|O
+        // -----
+        // O|X|X
+        // -----
+        // O| |O
+        let board = _make_local_board!((X X O; O X X; O E O));
+        assert_eq!(board.cells[0][0], Some(CellShape::X));
+        assert_eq!(board.cells[1][0], Some(CellShape::X));
+        assert_eq!(board.cells[2][0], Some(CellShape::O));
+        assert_eq!(board.cells[0][1], Some(CellShape::O));
+        assert_eq!(board.cells[1][1], Some(CellShape::X));
+        assert_eq!(board.cells[2][1], Some(CellShape::X));
+        assert_eq!(board.cells[0][2], Some(CellShape::O));
+        assert_eq!(board.cells[1][2], None);
+        assert_eq!(board.cells[2][2], Some(CellShape::O));
+    }
 
     #[test]
     fn make_board_macro_test() {
-        let board = make_board! {
+        let board = make_global_board! {
             () () ();
             () () ();
             () () ()
         };
         assert_eq!(board, GlobalBoard::default());
 
-        let macro_board = make_board! {
+        let macro_board = make_global_board! {
             (X X E; O E O; E E E) () ();
             () () ();
             () () ()
@@ -168,7 +245,7 @@ mod tests {
         board.local_boards[0][0].cells[2][1] = Some(CellShape::O);
         assert_eq!(board, macro_board);
 
-        let macro_board = make_board! {
+        let macro_board = make_global_board! {
             (E; E; X O E) () ();
             () (X O E; E; O E X) ();
             (X X E; E; O E O) () ()
@@ -186,7 +263,7 @@ mod tests {
         board.local_boards[0][2].cells[2][2] = Some(CellShape::O);
         assert_eq!(board, macro_board);
 
-        let macro_board = make_board! {
+        let macro_board = make_global_board! {
             (X X X; E O O; E E O) (E; X E O; E) ();
             () (O X E; E; E) (E; E O E; X E E);
             () () ()

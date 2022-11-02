@@ -78,6 +78,7 @@ impl GlobalBoard {
 
 #[cfg(test)]
 impl GlobalBoard {
+    /// Create a global board with the given array of local boards. Used in test macros.
     pub(crate) fn with_local_boards(local_boards: [[LocalBoard; 3]; 3]) -> Self {
         Self {
             local_boards,
