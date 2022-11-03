@@ -37,17 +37,14 @@ impl UltimateTTTApp {
 
     /// Update the board to reflect a cell being clicked.
     ///
-    /// This method uses [`active_shape`](UltimateTTTApp::active_shape) as the shape to place in the cell.
+    /// This method uses [`active_shape`](UltimateTTTApp::active_shape) as the shape to place in
+    /// the cell and [`GlobalBoard::make_move`] to actually make the move, ignoring any error.
     fn update_cell(&mut self, coord: GlobalCoord) {
-        let (x, y, (lx, ly)) = coord;
-
-        if x > 2 || y > 2 || lx > 2 || ly > 2 {
-            return;
-        }
-
-        let lb = &mut self.global_board.local_boards[x][y];
-        if lb.cells[lx][ly].is_none() {
-            lb.cells[lx][ly] = Some(self.active_shape);
+        if self
+            .global_board
+            .make_move(coord, self.active_shape)
+            .is_ok()
+        {
             self.active_shape = self.active_shape.other();
         }
     }
@@ -79,6 +76,7 @@ mod tests {
             (
                 (1, 1, (1, 1)),
                 make_global_board! {
+                    next = (1, 1),
                     () () ();
                     () (E; E X E; E) ();
                     () () ()
@@ -87,6 +85,7 @@ mod tests {
             (
                 (1, 1, (0, 0)),
                 make_global_board! {
+                    next = (0, 0),
                     () () ();
                     () (O E E; E X E; E) ();
                     () () ()
@@ -95,6 +94,7 @@ mod tests {
             (
                 (0, 0, (0, 1)),
                 make_global_board! {
+                    next = (0, 1),
                     (E; X E E; E) () ();
                     () (O E E; E X E; E) ();
                     () () ()
@@ -103,6 +103,7 @@ mod tests {
             (
                 (0, 1, (1, 1)),
                 make_global_board! {
+                    next = (1, 1),
                     (E; X E E; E) () ();
                     (E; E O E; E) (O E E; E X E; E) ();
                     () () ()
@@ -111,6 +112,7 @@ mod tests {
             (
                 (1, 1, (0, 2)),
                 make_global_board! {
+                    next = (0, 2),
                     (E; X E E; E) () ();
                     (E; E O E; E) (O E E; E X E; X E E) ();
                     () () ()
@@ -123,7 +125,11 @@ mod tests {
 
         for (coord, global_board) in moves_map {
             app.update_cell(coord);
-            assert_eq!(app.global_board, global_board);
+            assert_eq!(
+                app.global_board, global_board,
+                "coord = {:?}; global_board = {:?}",
+                coord, global_board
+            );
         }
     }
 }

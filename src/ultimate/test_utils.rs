@@ -137,10 +137,10 @@ macro_rules! _make_local_board {
     };
 }
 
-/// Make a global board with the given local board macro syntaxes. See [`_make_local_board`].
-macro_rules! make_global_board {
+/// Make an array of arrays of local boards for use in a global board.
+macro_rules! _make_local_board_arrays {
     ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {
-        $crate::ultimate::board::GlobalBoard::with_local_boards([
+        [
             [
                 $crate::ultimate::test_utils::_make_local_board!($a),
                 $crate::ultimate::test_utils::_make_local_board!($d),
@@ -156,11 +156,37 @@ macro_rules! make_global_board {
                 $crate::ultimate::test_utils::_make_local_board!($f),
                 $crate::ultimate::test_utils::_make_local_board!($i),
             ],
-        ])
+        ]
     };
 }
 
-pub(crate) use {_make_local_board, make_global_board};
+/// Make a global board with the given local board macro syntaxes and an optional next local board
+/// coordinate specifier at the start, which can be a tuple or `None`.
+///
+/// See [`_make_local_board`] for the local board syntax.
+macro_rules! make_global_board {
+    (next = None, $($arr:tt)+ ) => {
+        $crate::ultimate::board::GlobalBoard::with_local_boards_and_next_local_board(
+            None,
+            $crate::ultimate::test_utils::_make_local_board_arrays!($($arr)+),
+        )
+    };
+
+    (next = ($x:literal, $y:literal), $($arr:tt)+ ) => {
+        $crate::ultimate::board::GlobalBoard::with_local_boards_and_next_local_board(
+            Some(($x, $y)),
+            $crate::ultimate::test_utils::_make_local_board_arrays!($($arr)+),
+        )
+    };
+
+    ( $($arr:tt)+ ) => {
+        $crate::ultimate::board::GlobalBoard::with_local_boards(
+            $crate::ultimate::test_utils::_make_local_board_arrays!($($arr)+)
+        )
+    };
+}
+
+pub(crate) use {_make_local_board, _make_local_board_arrays, make_global_board};
 
 #[cfg(test)]
 mod tests {
@@ -225,7 +251,20 @@ mod tests {
     }
 
     #[test]
-    fn make_board_macro_test() {
+    fn make_local_board_arrays_macro_test() {
+        let arr = _make_local_board_arrays! {
+            (X X E; O E O; E E E) () ();
+            () () ();
+            () () ()
+        };
+        assert!(arr[0][0].cells[0][0] == Some(CellShape::X));
+        assert!(arr[0][0].cells[1][0] == Some(CellShape::X));
+        assert!(arr[0][0].cells[0][1] == Some(CellShape::O));
+        assert!(arr[0][0].cells[2][1] == Some(CellShape::O));
+    }
+
+    #[test]
+    fn make_global_board_macro_test() {
         let board = make_global_board! {
             () () ();
             () () ();
@@ -281,6 +320,26 @@ mod tests {
         board.local_boards[1][1].cells[1][0] = Some(CellShape::X);
         board.local_boards[2][1].cells[1][1] = Some(CellShape::O);
         board.local_boards[2][1].cells[0][2] = Some(CellShape::X);
+        assert_eq!(board, macro_board);
+
+        let macro_board = make_global_board! {
+            next = None,
+            () () ();
+            () () ();
+            () () ()
+        };
+        assert_eq!(GlobalBoard::default(), macro_board);
+
+        let macro_board = make_global_board! {
+            next = (1, 1),
+            (E; E X E; E) () ();
+            () () ();
+            () () ()
+        };
+        let mut board = GlobalBoard::default();
+        board
+            .make_move((0, 0, (1, 1)), CellShape::X)
+            .expect("We should be able to play the move (0, 0, (1, 1))");
         assert_eq!(board, macro_board);
     }
 }
