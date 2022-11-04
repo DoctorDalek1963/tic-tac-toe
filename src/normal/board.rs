@@ -171,6 +171,16 @@ impl Default for Board {
 }
 
 #[cfg(test)]
+impl Board {
+    pub fn with_cell_array(cells: [[Option<CellShape>; 3]; 3]) -> Self {
+        Self {
+            cells,
+            ..Default::default()
+        }
+    }
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
     use crate::normal::test_utils::make_board;
@@ -183,13 +193,13 @@ mod tests {
         // X| |
         //  |O|
         //  | |
-        let board = make_board!(X E E; E O E; E E E);
+        let board = make_board!(X _ _; _ O _; _);
         assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
 
         // X|O|X
         //  |X|O
         //  |O|X
-        let board = make_board!(X O X; E X O; E O X);
+        let board = make_board!(X O X; _ X O; _ O X);
         assert_eq!(
             board.get_winner(),
             Ok((CellShape::X, [(0, 0), (1, 1), (2, 2)]))
@@ -222,7 +232,7 @@ mod tests {
         // X|X|X
         // O|O|O
         //  | |
-        let board = make_board!(X X X; O O O; E E E);
+        let board = make_board!(X X X; O O O; _);
         assert_eq!(board.get_winner(), Err(WinnerError::MultipleWinners));
     }
 
@@ -247,7 +257,7 @@ mod tests {
         // X|O|X
         //  |X|O
         //  |O|X
-        let board = make_board!(X O X; E X O; E O X);
+        let board = make_board!(X O X; _ X O; _ O X);
         assert_eq!(board.empty_cells(), vec![(0, 1), (0, 2)]);
 
         // O|X|O
@@ -265,7 +275,7 @@ mod tests {
         // X|X|X
         // O|O|O
         //  | |
-        let board = make_board!(X X X; O O O; E E E);
+        let board = make_board!(X X X; O O O; _);
         assert_eq!(board.empty_cells(), vec![(0, 2), (1, 2), (2, 2)]);
     }
 
@@ -274,7 +284,7 @@ mod tests {
         // X|O|
         //  |X|O
         // O| |X
-        let board = make_board!(X O E; E X O; O E X);
+        let board = make_board!(X O _; _ X O; O _ X);
         // Whoever plays in this position, it's bad because the player (X) has won
         assert_eq!(board.evaluate_position(CellShape::X), -100);
         assert_eq!(board.evaluate_position(CellShape::O), -100);
@@ -282,7 +292,7 @@ mod tests {
         // O|X|
         //  |O|X
         // X| |O
-        let board = make_board!(O X E; E O X; X E O);
+        let board = make_board!(O X _; _ O X; X _ O);
         // Whoever plays in this position, it's good because the AI (O) has won
         assert_eq!(board.evaluate_position(CellShape::X), 100);
         assert_eq!(board.evaluate_position(CellShape::O), 100);
@@ -290,7 +300,7 @@ mod tests {
         // X|O|
         // X|O|O
         // X|O|
-        let board = make_board!(X O E; X O O; X O E);
+        let board = make_board!(X O _; X O O; X O _);
         // Multiple winners is a draw
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 0);
@@ -298,20 +308,20 @@ mod tests {
         // X|O|
         //  |X|O
         //  | |
-        let board = make_board!(X O E; E X E; E E E);
+        let board = make_board!(X O _; _ X _; _);
         assert_eq!(board.evaluate_position(CellShape::X), -90);
 
         // X|O|X
         // X|X|O
         // O| |O
-        let board = make_board!(X O X; X X O; O E O);
+        let board = make_board!(X O X; X X O; O _ O);
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 90);
 
         // X|O|X
         //  |X|O
         // O|X|O
-        let board = make_board!(X O X; E X O; O X O);
+        let board = make_board!(X O X; _ X O; O X O);
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 0);
     }
@@ -321,31 +331,31 @@ mod tests {
         //  | |X
         //  |X|O
         //  | |
-        let board = make_board!(E E X; E X O; E E E);
+        let board = make_board!(_ _ X; _ X O; _);
         assert_eq!(board.generate_ai_move(), Some((0, 2)));
 
         // X|O|X
         // X|O|
         //  | |
-        let board = make_board!(X O X; X O E; E E E);
+        let board = make_board!(X O X; X O _; _);
         assert_eq!(board.generate_ai_move(), Some((1, 2)));
 
         //  | |O
         //  |X|
         //  | |X
-        let board = make_board!(E E O; E X E; E E X);
+        let board = make_board!(_ _ O; _ X _; _ _ X);
         assert_eq!(board.generate_ai_move(), Some((0, 0)));
 
         // O| |O
         //  |X|
         // X| |X
-        let board = make_board!(O E O; E X E; X E X);
+        let board = make_board!(O _ O; _ X _; X _ X);
         assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O| |O
         //  |X|
         //  |X|X
-        let board = make_board!(O E O; E X E; E X X);
+        let board = make_board!(O _ O; _ X _; _ X X);
         assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O|X|X

@@ -1,12 +1,12 @@
 /// Convert a series of identifiers into a board to allow for easy testing.
 ///
-/// This macro goes row-wise and separates rows with semicolons, using `E` for an empty cell.
+/// This macro goes row-wise and separates rows with semicolons, using `_` for an empty cell.
 ///
 /// # Example
 ///
 /// The call:
 /// ```
-/// make_board!(X E O; X O E; E E E);
+/// make_board!(X _ O; X O _; _);
 /// ```
 /// would look like this:
 /// ```text
@@ -17,27 +17,105 @@
 ///  | |
 /// ```
 macro_rules! make_board {
-    ($a:ident $b:ident $c:ident; $d:ident $e:ident $f:ident; $g:ident $h:ident $i:ident) => {{
-        $crate::normal::board::Board {
-            cells: [
-                [
-                    $crate::test_utils::mock_cell_shape!($a),
-                    $crate::test_utils::mock_cell_shape!($d),
-                    $crate::test_utils::mock_cell_shape!($g),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($b),
-                    $crate::test_utils::mock_cell_shape!($e),
-                    $crate::test_utils::mock_cell_shape!($h),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($c),
-                    $crate::test_utils::mock_cell_shape!($f),
-                    $crate::test_utils::mock_cell_shape!($i),
-                ],
+    (_; _; _) => {
+        $crate::normal::board::Board::default()
+    };
+    (_; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($d),
+                $crate::test_utils::mock_cell_shape!($g),
             ],
-            ai_shape: $crate::CellShape::O,
-        }
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($e),
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($f),
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
+    }};
+    ($a:tt $b:tt $c:tt; _; $g:tt $h:tt $i:tt) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                None,
+                $crate::test_utils::mock_cell_shape!($g),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                None,
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                None,
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
+    }};
+    ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; _) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                $crate::test_utils::mock_cell_shape!($d),
+                None,
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                $crate::test_utils::mock_cell_shape!($e),
+                None,
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                $crate::test_utils::mock_cell_shape!($f),
+                None,
+            ],
+        ])
+    }};
+    (_; _; $g:tt $h:tt $i:tt) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [None, None, $crate::test_utils::mock_cell_shape!($g)],
+            [None, None, $crate::test_utils::mock_cell_shape!($h)],
+            [None, None, $crate::test_utils::mock_cell_shape!($i)],
+        ])
+    }};
+    ($a:tt $b:tt $c:tt; _; _) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [$crate::test_utils::mock_cell_shape!($a), None, None],
+            [$crate::test_utils::mock_cell_shape!($b), None, None],
+            [$crate::test_utils::mock_cell_shape!($c), None, None],
+        ])
+    }};
+    (_; $d:tt $e:tt $f:tt; _) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [None, $crate::test_utils::mock_cell_shape!($d), None],
+            [None, $crate::test_utils::mock_cell_shape!($e), None],
+            [None, $crate::test_utils::mock_cell_shape!($f), None],
+        ])
+    }};
+    ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {{
+        $crate::normal::board::Board::with_cell_array([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                $crate::test_utils::mock_cell_shape!($d),
+                $crate::test_utils::mock_cell_shape!($g),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                $crate::test_utils::mock_cell_shape!($e),
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                $crate::test_utils::mock_cell_shape!($f),
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
     }};
 }
 
@@ -55,7 +133,7 @@ mod tests {
         //  |O|
         // -----
         // O| |
-        let board = make_board!(X X E; E O E; O E E);
+        let board = make_board!(X X _; _ O _; O _ _);
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], Some(CellShape::X));
         assert_eq!(board.cells[2][0], None);
@@ -71,7 +149,7 @@ mod tests {
         // X|O|
         // -----
         //  | |
-        let board = make_board!(X E O; X O E; E E E);
+        let board = make_board!(X _ O; X O _; _);
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], None);
         assert_eq!(board.cells[2][0], Some(CellShape::O));
@@ -87,7 +165,7 @@ mod tests {
         // O|X|X
         // -----
         // O| |O
-        let board = make_board!(X X O; O X X; O E O);
+        let board = make_board!(X X O; O X X; O _ O);
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], Some(CellShape::X));
         assert_eq!(board.cells[2][0], Some(CellShape::O));

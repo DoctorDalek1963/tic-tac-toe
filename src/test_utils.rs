@@ -4,7 +4,7 @@
 macro_rules! mock_cell_shape {
     (X) => { Some($crate::CellShape::X) };
     (O) => { Some($crate::CellShape::O) };
-    (E) => { None };
+    (_) => { None };
 }
 
 pub(crate) use mock_cell_shape;

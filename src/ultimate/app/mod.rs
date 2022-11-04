@@ -75,7 +75,7 @@ mod tests {
                 make_global_board! {
                     next = (1, 1),
                     () () ();
-                    () (E; E X E; E) ();
+                    () (_; _ X _; _) ();
                     () () ()
                 },
             ),
@@ -84,7 +84,7 @@ mod tests {
                 make_global_board! {
                     next = (0, 0),
                     () () ();
-                    () (O E E; E X E; E) ();
+                    () (O _ _; _ X _; _) ();
                     () () ()
                 },
             ),
@@ -92,8 +92,8 @@ mod tests {
                 (0, 0, (0, 1)),
                 make_global_board! {
                     next = (0, 1),
-                    (E; X E E; E) () ();
-                    () (O E E; E X E; E) ();
+                    (_; X _ _; _) () ();
+                    () (O _ _; _ X _; _) ();
                     () () ()
                 },
             ),
@@ -101,8 +101,8 @@ mod tests {
                 (0, 1, (1, 1)),
                 make_global_board! {
                     next = (1, 1),
-                    (E; X E E; E) () ();
-                    (E; E O E; E) (O E E; E X E; E) ();
+                    (_; X _ _; _) () ();
+                    (_; _ O _; _) (O _ _; _ X _; _) ();
                     () () ()
                 },
             ),
@@ -110,8 +110,8 @@ mod tests {
                 (1, 1, (0, 2)),
                 make_global_board! {
                     next = (0, 2),
-                    (E; X E E; E) () ();
-                    (E; E O E; E) (O E E; E X E; X E E) ();
+                    (_; X _ _; _) () ();
+                    (_; _ O _; _) (O _ _; _ X _; X _ _) ();
                     () () ()
                 },
             ),

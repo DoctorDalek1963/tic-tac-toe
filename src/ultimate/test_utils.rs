@@ -1,13 +1,13 @@
 /// Make a local board with various syntaxes.
 ///
-/// Use `()` for an empty board, or specify a whole board, using `X` or `O` respectively, and `E`
+/// Use `()` for an empty board, or specify a whole board, using `X` or `O` respectively, and `_`
 /// for an empty cell.
 ///
 /// # Example
 ///
 /// The call:
 /// ```
-/// _make_local_board!(X E O; X O E; E E E);
+/// _make_local_board!(X _ O; X O _; _);
 /// ```
 /// would look like this:
 /// ```text
@@ -21,10 +21,10 @@ macro_rules! _make_local_board {
     (()) => {
         $crate::ultimate::board::LocalBoard::new()
     };
-    ((E; E; E)) => {
+    ((_; _; _)) => {
         $crate::ultimate::board::LocalBoard::new()
     };
-    ((E; $d:ident $e:ident $f:ident; $g:ident $h:ident $i:ident)) => {
+    ((_; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [
                 None,
@@ -43,7 +43,7 @@ macro_rules! _make_local_board {
             ],
         ])
     };
-    (($a:ident $b:ident $c:ident; E; $g:ident $h:ident $i:ident)) => {
+    (($a:tt $b:tt $c:tt; _; $g:tt $h:tt $i:tt)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [
                 $crate::test_utils::mock_cell_shape!($a),
@@ -62,7 +62,7 @@ macro_rules! _make_local_board {
             ],
         ])
     };
-    (($a:ident $b:ident $c:ident; $d:ident $e:ident $f:ident; E)) => {
+    (($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; _)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [
                 $crate::test_utils::mock_cell_shape!($a),
@@ -81,28 +81,28 @@ macro_rules! _make_local_board {
             ],
         ])
     };
-    ((E; E; $g:ident $h:ident $i:ident)) => {
+    ((_; _; $g:tt $h:tt $i:tt)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [None, None, $crate::test_utils::mock_cell_shape!($g)],
             [None, None, $crate::test_utils::mock_cell_shape!($h)],
             [None, None, $crate::test_utils::mock_cell_shape!($i)],
         ])
     };
-    ((E; $d:ident $e:ident $f:ident; E)) => {
+    ((_; $d:tt $e:tt $f:tt; _)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [None, $crate::test_utils::mock_cell_shape!($d), None],
             [None, $crate::test_utils::mock_cell_shape!($e), None],
             [None, $crate::test_utils::mock_cell_shape!($f), None],
         ])
     };
-    (($a:ident $b:ident $c:ident; E; E)) => {
+    (($a:tt $b:tt $c:tt; _; _)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [$crate::test_utils::mock_cell_shape!($a), None, None],
             [$crate::test_utils::mock_cell_shape!($b), None, None],
             [$crate::test_utils::mock_cell_shape!($c), None, None],
         ])
     };
-    (($a:ident $b:ident $c:ident; $d:ident $e:ident $f:ident; $g:ident $h:ident $i:ident)) => {
+    (($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt)) => {
         $crate::ultimate::board::LocalBoard::with_cells([
             [
                 $crate::test_utils::mock_cell_shape!($a),
@@ -185,14 +185,14 @@ mod tests {
     #[test]
     fn make_local_board_macro_test() {
         assert_eq!(_make_local_board!(()), LocalBoard::new());
-        assert_eq!(_make_local_board!((E; E; E)), LocalBoard::new());
+        assert_eq!(_make_local_board!((_; _; _)), LocalBoard::new());
 
         // X|X|
         // -----
         //  |O|
         // -----
         // O| |
-        let board = _make_local_board!((X X E; E O E; O E E));
+        let board = _make_local_board!((X X _; _ O _; O _ _));
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], Some(CellShape::X));
         assert_eq!(board.cells[2][0], None);
@@ -208,7 +208,7 @@ mod tests {
         // X|O|
         // -----
         //  | |
-        let board = _make_local_board!((X E O; X O E; E));
+        let board = _make_local_board!((X _ O; X O _; _));
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], None);
         assert_eq!(board.cells[2][0], Some(CellShape::O));
@@ -224,7 +224,7 @@ mod tests {
         // O|X|X
         // -----
         // O| |O
-        let board = _make_local_board!((X X O; O X X; O E O));
+        let board = _make_local_board!((X X O; O X X; O _ O));
         assert_eq!(board.cells[0][0], Some(CellShape::X));
         assert_eq!(board.cells[1][0], Some(CellShape::X));
         assert_eq!(board.cells[2][0], Some(CellShape::O));
@@ -239,7 +239,7 @@ mod tests {
     #[test]
     fn make_local_board_arrays_macro_test() {
         let arr = _make_local_board_arrays! {
-            (X X E; O E O; E E E) () ();
+            (X X _; O _ O; _) () ();
             () () ();
             () () ()
         };
@@ -259,7 +259,7 @@ mod tests {
         assert_eq!(board, GlobalBoard::default());
 
         let macro_board = make_global_board! {
-            (X X E; O E O; E E E) () ();
+            (X X _; O _ O; _) () ();
             () () ();
             () () ()
         };
@@ -271,9 +271,9 @@ mod tests {
         assert_eq!(board, macro_board);
 
         let macro_board = make_global_board! {
-            (E; E; X O E) () ();
-            () (X O E; E; O E X) ();
-            (X X E; E; O E O) () ()
+            (_; _; X O _) () ();
+            () (X O _; _; O _ X) ();
+            (X X _; _; O _ O) () ()
         };
         let mut board = GlobalBoard::default();
         board.local_boards[0][0].cells[0][2] = Some(CellShape::X);
@@ -289,8 +289,8 @@ mod tests {
         assert_eq!(board, macro_board);
 
         let macro_board = make_global_board! {
-            (X X X; E O O; E E O) (E; X E O; E) ();
-            () (O X E; E; E) (E; E O E; X E E);
+            (X X X; _ O O; _ _ O) (_; X _ O; _) ();
+            () (O X _; _; _) (_; _ O _; X _ _);
             () () ()
         };
         let mut board = GlobalBoard::default();
@@ -318,7 +318,7 @@ mod tests {
 
         let macro_board = make_global_board! {
             next = (1, 1),
-            (E; E X E; E) () ();
+            (_; _ X _; _) () ();
             () () ();
             () () ()
         };

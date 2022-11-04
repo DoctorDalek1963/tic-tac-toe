@@ -200,22 +200,22 @@ mod tests {
     #[test]
     fn update_cell_test() {
         let map_1: Vec<(Coord, Board)> = vec![
-            ((0, 1), make_board!(E E E; X E E; E E E)),
-            ((2, 1), make_board!(E E E; X E O; E E E)),
-            ((0, 0), make_board!(X E E; X E O; E E E)),
-            ((2, 2), make_board!(X E E; X E O; E E O)),
-            ((2, 0), make_board!(X E X; X E O; E E O)),
-            ((0, 2), make_board!(X E X; X E O; O E O)),
+            ((0, 1), make_board!(_; X _ _; _)),
+            ((2, 1), make_board!(_; X _ O; _)),
+            ((0, 0), make_board!(X _ _; X _ O; _)),
+            ((2, 2), make_board!(X _ _; X _ O; _ _ O)),
+            ((2, 0), make_board!(X _ X; X _ O; _ _ O)),
+            ((0, 2), make_board!(X _ X; X _ O; O _ O)),
         ];
 
         let map_2: Vec<(Coord, Board)> = vec![
-            ((0, 3), make_board!(E E E; E E E; E E E)),
-            ((6, 3), make_board!(E E E; E E E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((2, 1), make_board!(E E E; E X O; E E E)),
+            ((0, 3), make_board!(_; _; _)),
+            ((6, 3), make_board!(_; _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((2, 1), make_board!(_; _ X O; _)),
         ];
 
         for moves_map in [map_1, map_2] {
