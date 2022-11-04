@@ -39,6 +39,7 @@ pub struct LocalBoard {
     /// ```
     pub cells: [[Option<CellShape>; 3]; 3],
 
+    /// The winner of the board, used to cache the first winner so that multiple winners can't occur.
     winner: Option<(CellShape, [(usize, usize); 3])>,
 }
 
@@ -65,7 +66,6 @@ impl LocalBoard {
 
     /// Return the winner of the current board. See
     /// [`shared::get_winner`](crate::shared::get_winner).
-    #[inline(always)]
     pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         match self.winner {
             None => {
@@ -166,6 +166,20 @@ impl GlobalBoard {
         }
 
         Ok(())
+    }
+
+    /// Return the winner of the global board. See
+    /// [`shared::get_winner`](crate::shared::get_winner).
+    pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
+        let cells: [[Option<CellShape>; 3]; 3] = self.local_boards.map(|arr| {
+            arr.map(|mut board| board.get_winner().map_or(None, |(shape, _)| Some(shape)))
+        });
+
+        let result = shared::get_winner(cells);
+        if result.is_ok() {
+            self.next_local_board = None;
+        }
+        result
     }
 }
 

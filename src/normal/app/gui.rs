@@ -1,7 +1,9 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
 use super::{send_move_after_delay, NormalTTTApp};
-use crate::shared::{centered_square_in_rect, draw_cellshape_in_rect, CellShape};
+use crate::shared::{
+    centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect, CellShape,
+};
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
     epaint::{Color32, Pos2, Stroke, Vec2},
@@ -85,111 +87,13 @@ impl NormalTTTApp {
 
         // Draw the winning line
         if let Ok((_, [start_coord, _, end_coord])) = self.board.get_winner() {
-            let Pos2 { x: min_x, y: min_y } = rect.min;
-            let Pos2 { x: max_x, y: max_y } = rect.max;
-            let len = rect.width();
-
-            let [start, end]: [Pos2; 2] = match [start_coord, end_coord] {
-                // Column 0
-                [(0, 0), (0, 2)] => [
-                    Pos2 {
-                        x: min_x + len / 6.,
-                        y: min_y,
-                    },
-                    Pos2 {
-                        x: min_x + len / 6.,
-                        y: max_y,
-                    },
-                ],
-
-                // Column 1
-                [(1, 0), (1, 2)] => [
-                    Pos2 {
-                        x: min_x + len / 2.,
-                        y: min_y,
-                    },
-                    Pos2 {
-                        x: min_x + len / 2.,
-                        y: max_y,
-                    },
-                ],
-
-                // Column 2
-                [(2, 0), (2, 2)] => [
-                    Pos2 {
-                        x: min_x + (5. * len / 6.),
-                        y: min_y,
-                    },
-                    Pos2 {
-                        x: min_x + (5. * len / 6.),
-                        y: max_y,
-                    },
-                ],
-
-                // Row 0
-                [(0, 0), (2, 0)] => [
-                    Pos2 {
-                        x: min_x,
-                        y: min_y + len / 6.,
-                    },
-                    Pos2 {
-                        x: max_x,
-                        y: min_y + len / 6.,
-                    },
-                ],
-
-                // Row 1
-                [(0, 1), (2, 1)] => [
-                    Pos2 {
-                        x: min_x,
-                        y: min_y + len / 2.,
-                    },
-                    Pos2 {
-                        x: max_x,
-                        y: min_y + len / 2.,
-                    },
-                ],
-
-                // Row 2
-                [(0, 2), (2, 2)] => [
-                    Pos2 {
-                        x: min_x,
-                        y: min_y + (5. * len / 6.),
-                    },
-                    Pos2 {
-                        x: max_x,
-                        y: min_y + (5. * len / 6.),
-                    },
-                ],
-
-                // +ve diagonal
-                [(0, 2), (2, 0)] => {
-                    let x = 0.5 * len * 0.95;
-                    let vec = Vec2 { x, y: -x };
-                    [rect.center() + vec, rect.center() - vec]
-                }
-
-                // -ve diagonal
-                [(0, 0), (2, 2)] => {
-                    let vec = Vec2::splat(0.5 * len * 0.95);
-                    [rect.center() + vec, rect.center() - vec]
-                }
-
-                _ => unreachable!("We should have covered all possible winning lines"),
-            };
-
-            let stroke_width = rect.width() / 90.0;
-            painter.add(Shape::LineSegment {
-                points: [start, end],
-                stroke: Stroke {
-                    width: stroke_width,
-                    color: if ui.ctx().style().visuals.dark_mode {
-                        Color32::WHITE
-                    } else {
-                        Color32::BLACK
-                    },
-                },
-            });
+            draw_winning_line_in_rect(
+                &rect,
+                &painter,
+                ui.ctx().style().visuals.dark_mode,
+                start_coord,
+                end_coord,
+            );
         }
     }
 
@@ -203,7 +107,7 @@ impl NormalTTTApp {
     ) -> Response {
         let rect = centered_square_in_rect(rect, 0.8);
 
-        draw_cellshape_in_rect(painter, &rect, &shape, false);
+        draw_cellshape_in_rect(painter, &rect, shape, false);
 
         ui.allocate_rect(
             rect,

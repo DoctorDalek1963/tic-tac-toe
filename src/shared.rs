@@ -52,10 +52,11 @@ pub fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
     Rect::from_center_size(rect.center(), Vec2::splat(length))
 }
 
+/// Draw the given cellshape in the given rect.
 pub(crate) fn draw_cellshape_in_rect(
     painter: &Painter,
     rect: &Rect,
-    shape: &Option<CellShape>,
+    shape: Option<CellShape>,
     translucent: bool,
 ) {
     let stroke_width = rect.width() / 30.0;
@@ -102,6 +103,121 @@ pub(crate) fn draw_cellshape_in_rect(
             }));
         }
     };
+}
+
+/// Draw the winning line on the board in the given rect between the given start and end coordinates.
+pub(crate) fn draw_winning_line_in_rect(
+    rect: &Rect,
+    painter: &Painter,
+    dark_mode: bool,
+    start_coord: (usize, usize),
+    end_coord: (usize, usize),
+) {
+    let Pos2 { x: min_x, y: min_y } = rect.min;
+    let Pos2 { x: max_x, y: max_y } = rect.max;
+    let len = rect.width();
+
+    let [start, end]: [Pos2; 2] = match [start_coord, end_coord] {
+        // Column 0
+        [(0, 0), (0, 2)] => [
+            Pos2 {
+                x: min_x + len / 6.,
+                y: min_y,
+            },
+            Pos2 {
+                x: min_x + len / 6.,
+                y: max_y,
+            },
+        ],
+
+        // Column 1
+        [(1, 0), (1, 2)] => [
+            Pos2 {
+                x: min_x + len / 2.,
+                y: min_y,
+            },
+            Pos2 {
+                x: min_x + len / 2.,
+                y: max_y,
+            },
+        ],
+
+        // Column 2
+        [(2, 0), (2, 2)] => [
+            Pos2 {
+                x: min_x + (5. * len / 6.),
+                y: min_y,
+            },
+            Pos2 {
+                x: min_x + (5. * len / 6.),
+                y: max_y,
+            },
+        ],
+
+        // Row 0
+        [(0, 0), (2, 0)] => [
+            Pos2 {
+                x: min_x,
+                y: min_y + len / 6.,
+            },
+            Pos2 {
+                x: max_x,
+                y: min_y + len / 6.,
+            },
+        ],
+
+        // Row 1
+        [(0, 1), (2, 1)] => [
+            Pos2 {
+                x: min_x,
+                y: min_y + len / 2.,
+            },
+            Pos2 {
+                x: max_x,
+                y: min_y + len / 2.,
+            },
+        ],
+
+        // Row 2
+        [(0, 2), (2, 2)] => [
+            Pos2 {
+                x: min_x,
+                y: min_y + (5. * len / 6.),
+            },
+            Pos2 {
+                x: max_x,
+                y: min_y + (5. * len / 6.),
+            },
+        ],
+
+        // +ve diagonal
+        [(0, 2), (2, 0)] => {
+            let x = 0.5 * len * 0.95;
+            let vec = Vec2 { x, y: -x };
+            [rect.center() + vec, rect.center() - vec]
+        }
+
+        // -ve diagonal
+        [(0, 0), (2, 2)] => {
+            let vec = Vec2::splat(0.5 * len * 0.95);
+            [rect.center() + vec, rect.center() - vec]
+        }
+
+        _ => unreachable!("We should have covered all possible winning lines"),
+    };
+
+    let stroke_width = rect.width() / 90.0;
+    painter.add(Shape::LineSegment {
+        points: [start, end],
+        stroke: Stroke {
+            width: stroke_width,
+            color: if dark_mode {
+                Color32::WHITE
+            } else {
+                Color32::BLACK
+            },
+        },
+    });
 }
 
 /// Check if the board is full.

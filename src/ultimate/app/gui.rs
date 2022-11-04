@@ -2,7 +2,7 @@
 
 use super::UltimateTTTApp;
 use crate::{
-    shared::{centered_square_in_rect, draw_cellshape_in_rect},
+    shared::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
     ultimate::GlobalCoord,
 };
 use eframe::{
@@ -81,6 +81,17 @@ impl UltimateTTTApp {
                 self.draw_local_board((x, y), ui, &painter, cell_rect);
             }
         }
+
+        // Draw the winning line
+        if let Ok((_, [start_coord, _, end_coord])) = self.global_board.get_winner() {
+            draw_winning_line_in_rect(
+                &rect,
+                &painter,
+                ui.ctx().style().visuals.dark_mode,
+                start_coord,
+                end_coord,
+            );
+        }
     }
 
     /// Draw the specified local board in the given rect.
@@ -115,7 +126,7 @@ impl UltimateTTTApp {
         if let Ok((winning_shape, _)) =
             self.global_board.local_boards[coords.0][coords.1].get_winner()
         {
-            draw_cellshape_in_rect(painter, &rect, &Some(winning_shape), true);
+            draw_cellshape_in_rect(painter, &rect, Some(winning_shape), true);
         }
 
         let nums = [0, 1, 2];
@@ -140,8 +151,9 @@ impl UltimateTTTApp {
         }
     }
 
+    /// Draw the appropriate cell (specified by the [`GlobalCoord`]) in the given rect.
     fn draw_cell(
-        &self,
+        &mut self,
         ui: &mut Ui,
         painter: &Painter,
         rect: Rect,
@@ -152,9 +164,10 @@ impl UltimateTTTApp {
         let shape = self.global_board.local_boards[x][y].cells[lx][ly];
         let interactive: bool = (self.global_board.next_local_board() == Some((x, y))
             || self.global_board.next_local_board().is_none())
-            && shape == None;
+            && shape == None
+            && self.global_board.get_winner().is_err();
 
-        draw_cellshape_in_rect(painter, &rect, &shape, false);
+        draw_cellshape_in_rect(painter, &rect, shape, false);
 
         ui.allocate_rect(
             rect,
