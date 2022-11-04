@@ -60,7 +60,12 @@ pub fn draw_cellshape_in_rect(
                 fill: Color32::TRANSPARENT,
                 stroke: Stroke {
                     width: stroke_width,
-                    color: Color32::LIGHT_BLUE,
+                    color: if translucent {
+                        let c = Color32::LIGHT_BLUE;
+                        Color32::from_rgba_unmultiplied(c.r(), c.g(), c.b(), 128)
+                    } else {
+                        Color32::LIGHT_BLUE
+                    },
                 },
             }));
         }

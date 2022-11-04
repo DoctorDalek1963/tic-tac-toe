@@ -123,12 +123,6 @@ impl UltimateTTTApp {
             },
         );
 
-        if let Ok((winning_shape, _)) =
-            self.global_board.local_boards[coords.0][coords.1].get_winner()
-        {
-            draw_cellshape_in_rect(painter, &rect, Some(winning_shape), true);
-        }
-
         let nums = [0, 1, 2];
         for y in nums {
             for x in nums {
@@ -148,6 +142,12 @@ impl UltimateTTTApp {
                     self.update_cell(global_coord);
                 }
             }
+        }
+
+        if let Ok((winning_shape, _)) =
+            self.global_board.local_boards[coords.0][coords.1].get_winner()
+        {
+            draw_cellshape_in_rect(painter, &rect, Some(winning_shape), true);
         }
     }
 

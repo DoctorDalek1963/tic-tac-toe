@@ -44,12 +44,6 @@ impl Board {
         }
     }
 
-    /// Check if the board is full.
-    #[inline(always)]
-    fn is_board_full(&self) -> bool {
-        shared::board::is_board_full(self.cells)
-    }
-
     /// Return the winner of the current board. See
     /// [`shared::board::get_winner`](crate::shared::board::get_winner).
     #[inline(always)]
