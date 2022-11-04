@@ -25,115 +25,101 @@ macro_rules! _make_local_board {
         $crate::ultimate::board::LocalBoard::new()
     };
     ((E; $d:ident $e:ident $f:ident; $g:ident $h:ident $i:ident)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [
-                    None,
-                    $crate::test_utils::mock_cell_shape!($d),
-                    $crate::test_utils::mock_cell_shape!($g),
-                ],
-                [
-                    None,
-                    $crate::test_utils::mock_cell_shape!($e),
-                    $crate::test_utils::mock_cell_shape!($h),
-                ],
-                [
-                    None,
-                    $crate::test_utils::mock_cell_shape!($f),
-                    $crate::test_utils::mock_cell_shape!($i),
-                ],
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($d),
+                $crate::test_utils::mock_cell_shape!($g),
             ],
-        }
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($e),
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                None,
+                $crate::test_utils::mock_cell_shape!($f),
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
     };
     (($a:ident $b:ident $c:ident; E; $g:ident $h:ident $i:ident)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [
-                    $crate::test_utils::mock_cell_shape!($a),
-                    None,
-                    $crate::test_utils::mock_cell_shape!($g),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($b),
-                    None,
-                    $crate::test_utils::mock_cell_shape!($h),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($c),
-                    None,
-                    $crate::test_utils::mock_cell_shape!($i),
-                ],
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                None,
+                $crate::test_utils::mock_cell_shape!($g),
             ],
-        }
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                None,
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                None,
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
     };
     (($a:ident $b:ident $c:ident; $d:ident $e:ident $f:ident; E)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [
-                    $crate::test_utils::mock_cell_shape!($a),
-                    $crate::test_utils::mock_cell_shape!($d),
-                    None,
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($b),
-                    $crate::test_utils::mock_cell_shape!($e),
-                    None,
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($c),
-                    $crate::test_utils::mock_cell_shape!($f),
-                    None,
-                ],
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                $crate::test_utils::mock_cell_shape!($d),
+                None,
             ],
-        }
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                $crate::test_utils::mock_cell_shape!($e),
+                None,
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                $crate::test_utils::mock_cell_shape!($f),
+                None,
+            ],
+        ])
     };
     ((E; E; $g:ident $h:ident $i:ident)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [None, None, $crate::test_utils::mock_cell_shape!($g)],
-                [None, None, $crate::test_utils::mock_cell_shape!($h)],
-                [None, None, $crate::test_utils::mock_cell_shape!($i)],
-            ],
-        }
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [None, None, $crate::test_utils::mock_cell_shape!($g)],
+            [None, None, $crate::test_utils::mock_cell_shape!($h)],
+            [None, None, $crate::test_utils::mock_cell_shape!($i)],
+        ])
     };
     ((E; $d:ident $e:ident $f:ident; E)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [None, $crate::test_utils::mock_cell_shape!($d), None],
-                [None, $crate::test_utils::mock_cell_shape!($e), None],
-                [None, $crate::test_utils::mock_cell_shape!($f), None],
-            ],
-        }
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [None, $crate::test_utils::mock_cell_shape!($d), None],
+            [None, $crate::test_utils::mock_cell_shape!($e), None],
+            [None, $crate::test_utils::mock_cell_shape!($f), None],
+        ])
     };
     (($a:ident $b:ident $c:ident; E; E)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [$crate::test_utils::mock_cell_shape!($a), None, None],
-                [$crate::test_utils::mock_cell_shape!($b), None, None],
-                [$crate::test_utils::mock_cell_shape!($c), None, None],
-            ],
-        }
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [$crate::test_utils::mock_cell_shape!($a), None, None],
+            [$crate::test_utils::mock_cell_shape!($b), None, None],
+            [$crate::test_utils::mock_cell_shape!($c), None, None],
+        ])
     };
     (($a:ident $b:ident $c:ident; $d:ident $e:ident $f:ident; $g:ident $h:ident $i:ident)) => {
-        $crate::ultimate::board::LocalBoard {
-            cells: [
-                [
-                    $crate::test_utils::mock_cell_shape!($a),
-                    $crate::test_utils::mock_cell_shape!($d),
-                    $crate::test_utils::mock_cell_shape!($g),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($b),
-                    $crate::test_utils::mock_cell_shape!($e),
-                    $crate::test_utils::mock_cell_shape!($h),
-                ],
-                [
-                    $crate::test_utils::mock_cell_shape!($c),
-                    $crate::test_utils::mock_cell_shape!($f),
-                    $crate::test_utils::mock_cell_shape!($i),
-                ],
+        $crate::ultimate::board::LocalBoard::with_cells([
+            [
+                $crate::test_utils::mock_cell_shape!($a),
+                $crate::test_utils::mock_cell_shape!($d),
+                $crate::test_utils::mock_cell_shape!($g),
             ],
-        }
+            [
+                $crate::test_utils::mock_cell_shape!($b),
+                $crate::test_utils::mock_cell_shape!($e),
+                $crate::test_utils::mock_cell_shape!($h),
+            ],
+            [
+                $crate::test_utils::mock_cell_shape!($c),
+                $crate::test_utils::mock_cell_shape!($f),
+                $crate::test_utils::mock_cell_shape!($i),
+            ],
+        ])
     };
 }
 

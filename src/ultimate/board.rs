@@ -5,7 +5,7 @@
 //! grid of cells.
 
 use super::GlobalCoord;
-use crate::shared::CellShape;
+use crate::shared::{self, CellShape, WinnerError};
 use thiserror::Error;
 
 /// An enum to represent possible errors arising from making a move. See [`GlobalBoard::make_move`].
@@ -38,6 +38,14 @@ pub struct LocalBoard {
     /// (0, 2) | (1, 2) | (2, 2)
     /// ```
     pub cells: [[Option<CellShape>; 3]; 3],
+
+    winner: Option<(CellShape, [(usize, usize); 3])>,
+}
+
+impl Default for LocalBoard {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl LocalBoard {
@@ -45,12 +53,28 @@ impl LocalBoard {
     pub fn new() -> Self {
         Self {
             cells: [[None; 3]; 3],
+            winner: None,
         }
     }
 
-    /// Check if this local board is full.
-    pub(crate) fn is_full(&self) -> bool {
-        self.cells.iter().flatten().filter(|&x| x.is_none()).count() == 0
+    /// Check if the board is full.
+    #[inline(always)]
+    fn is_board_full(&self) -> bool {
+        shared::is_board_full(self.cells)
+    }
+
+    /// Return the winner of the current board. See
+    /// [`shared::get_winner`](crate::shared::get_winner).
+    #[inline(always)]
+    pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
+        match self.winner {
+            None => {
+                let winner = shared::get_winner(self.cells)?;
+                self.winner = Some(winner);
+                Ok(winner)
+            }
+            Some(x) => Ok(x),
+        }
     }
 }
 
@@ -99,6 +123,15 @@ impl GlobalBoard {
         self.next_local_board
     }
 
+    /// Check if the given local board has won
+    pub(crate) fn has_local_board_won(
+        &mut self,
+        x: usize,
+        y: usize,
+    ) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
+        self.local_boards[x][y].get_winner()
+    }
+
     /// Update the board to reflect a move being made.
     ///
     /// This method will also update the [`next_local_board`](Self::next_local_board), setting it
@@ -126,13 +159,23 @@ impl GlobalBoard {
         }
 
         lb.cells[lx][ly] = Some(shape);
-        if self.local_boards[lx][ly].is_full() {
+        if self.local_boards[lx][ly].is_board_full() {
             self.next_local_board = None;
         } else {
             self.next_local_board = Some((lx, ly));
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+impl LocalBoard {
+    pub(crate) fn with_cells(cells: [[Option<CellShape>; 3]; 3]) -> Self {
+        Self {
+            cells,
+            ..Default::default()
+        }
     }
 }
 
@@ -166,27 +209,27 @@ mod tests {
         use super::super::*;
 
         #[test]
-        fn is_full_test() {
+        fn is_board_full_test() {
             let mut board = LocalBoard::new();
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[0][0] = Some(CellShape::X);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[1][0] = Some(CellShape::O);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[2][0] = Some(CellShape::X);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[0][1] = Some(CellShape::O);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[1][1] = Some(CellShape::X);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[2][1] = Some(CellShape::O);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[0][2] = Some(CellShape::X);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[1][2] = Some(CellShape::O);
-            assert!(!board.is_full());
+            assert!(!board.is_board_full());
             board.cells[2][2] = Some(CellShape::X);
-            assert!(board.is_full());
+            assert!(board.is_board_full());
         }
     }
 

@@ -1,9 +1,12 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
 use super::UltimateTTTApp;
-use crate::shared::centered_square_in_rect;
+use crate::{
+    shared::{centered_square_in_rect, draw_cellshape_in_rect},
+    ultimate::GlobalCoord,
+};
 use eframe::{
-    egui::{self, Context, Painter, Ui},
+    egui::{self, Context, Painter, Response, Sense, Ui},
     epaint::{Color32, Pos2, Rect, Shape, Stroke, Vec2},
 };
 
@@ -88,10 +91,12 @@ impl UltimateTTTApp {
         painter: &Painter,
         rect: Rect,
     ) {
-        self.draw_board_lines(
+        let rect = centered_square_in_rect(rect, 0.85);
+
+        let cell_length = self.draw_board_lines(
             ui.ctx(),
             painter,
-            &centered_square_in_rect(rect, 0.85),
+            &rect,
             if let Some(c) = self.global_board.next_local_board() {
                 if c == coords {
                     Some(if ui.ctx().style().visuals.dark_mode {
@@ -106,5 +111,58 @@ impl UltimateTTTApp {
                 None
             },
         );
+
+        if let Ok((winning_shape, _)) =
+            self.global_board.local_boards[coords.0][coords.1].get_winner()
+        {
+            draw_cellshape_in_rect(painter, &rect, &Some(winning_shape), true);
+        }
+
+        let nums = [0, 1, 2];
+        for y in nums {
+            for x in nums {
+                let cell_rect = Rect::from_min_size(
+                    Pos2::new(
+                        rect.min.x + (x as f32 * cell_length),
+                        rect.min.y + (y as f32 * cell_length),
+                    ),
+                    Vec2::splat(cell_length),
+                );
+
+                let global_coord = (coords.0, coords.1, (x, y));
+                if self
+                    .draw_cell(ui, painter, cell_rect, global_coord)
+                    .clicked()
+                {
+                    self.update_cell(global_coord);
+                }
+            }
+        }
+    }
+
+    fn draw_cell(
+        &self,
+        ui: &mut Ui,
+        painter: &Painter,
+        rect: Rect,
+        coord: GlobalCoord,
+    ) -> Response {
+        let rect = centered_square_in_rect(rect, 0.8);
+        let (x, y, (lx, ly)) = coord;
+        let shape = self.global_board.local_boards[x][y].cells[lx][ly];
+        let interactive: bool = (self.global_board.next_local_board() == Some((x, y))
+            || self.global_board.next_local_board().is_none())
+            && shape == None;
+
+        draw_cellshape_in_rect(painter, &rect, &shape, false);
+
+        ui.allocate_rect(
+            rect,
+            if interactive && shape.is_none() {
+                Sense::click()
+            } else {
+                Sense::focusable_noninteractive()
+            },
+        )
     }
 }

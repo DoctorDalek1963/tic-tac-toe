@@ -1,6 +1,9 @@
 //! This module provides various types that are shared between variants.
 
-use eframe::epaint::{Rect, Vec2};
+use eframe::{
+    egui::Painter,
+    epaint::{CircleShape, Color32, Pos2, Rect, Shape, Stroke, Vec2},
+};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -47,4 +50,135 @@ pub fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
     let length = percent * x.min(y);
 
     Rect::from_center_size(rect.center(), Vec2::splat(length))
+}
+
+pub(crate) fn draw_cellshape_in_rect(
+    painter: &Painter,
+    rect: &Rect,
+    shape: &Option<CellShape>,
+    translucent: bool,
+) {
+    let stroke_width = rect.width() / 30.0;
+
+    match shape {
+        None => (),
+        Some(CellShape::X) => {
+            let rect = centered_square_in_rect(*rect, 0.9);
+            let tl = rect.min;
+            let br = rect.max;
+            let bl = Pos2 { x: tl.x, y: br.y };
+            let tr = Pos2 { x: br.x, y: tl.y };
+
+            let stroke = Stroke {
+                width: stroke_width,
+                color: if translucent {
+                    let c = Color32::LIGHT_RED;
+                    Color32::from_rgba_unmultiplied(c.r(), c.g(), c.b(), 128)
+                } else {
+                    Color32::LIGHT_RED
+                },
+            };
+
+            painter.extend(vec![
+                Shape::LineSegment {
+                    points: [tl, br],
+                    stroke,
+                },
+                Shape::LineSegment {
+                    points: [bl, tr],
+                    stroke,
+                },
+            ]);
+        }
+        Some(CellShape::O) => {
+            painter.add(Shape::Circle(CircleShape {
+                center: rect.center(),
+                radius: rect.width() / 2.2,
+                fill: Color32::TRANSPARENT,
+                stroke: Stroke {
+                    width: stroke_width,
+                    color: Color32::LIGHT_BLUE,
+                },
+            }));
+        }
+    };
+}
+
+/// Check if the board is full.
+///
+/// This method does not check for a winner. See [`get_winner`](Board::get_winner).
+pub(crate) fn is_board_full(cells: [[Option<CellShape>; 3]; 3]) -> bool {
+    cells.iter().flatten().filter(|cell| cell.is_some()).count() == 9
+}
+
+/// Return the winner in the current board position, or a variant of [`WinnerError`] if there is no winner.
+///
+/// # Errors
+///
+/// - [`NoWinnerYet`](WinnerError::NoWinnerYet): There is currently no winner, but there could be
+/// in the future.
+/// - [`BoardFullNoWinner`](WinnerError::BoardFullNoWinner): The board is full and neither player
+/// has won.
+/// - [`MultipleWinners`](WinnerError::MultipleWinners): Both players have won. This should never
+/// be achievable in normal play.
+pub fn get_winner(
+    cells: [[Option<CellShape>; 3]; 3],
+) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
+    // This closure returns a tuple with the shapes and the actual coordinates
+    let get_triplet =
+        |coords: [(usize, usize); 3]| -> ([Option<CellShape>; 3], [(usize, usize); 3]) {
+            let get_cell = |coord: (usize, usize)| -> Option<CellShape> { cells[coord.0][coord.1] };
+
+            (
+                [
+                    get_cell(coords[0]),
+                    get_cell(coords[1]),
+                    get_cell(coords[2]),
+                ],
+                coords,
+            )
+        };
+
+    // Each element of this array is a tuple of the shapes and the actual coordinates
+    let triplets: [([Option<CellShape>; 3], [(usize, usize); 3]); 8] = [
+        get_triplet([(0, 0), (0, 1), (0, 2)]), // Column 0
+        get_triplet([(1, 0), (1, 1), (1, 2)]), // Column 1
+        get_triplet([(2, 0), (2, 1), (2, 2)]), // Column 2
+        get_triplet([(0, 0), (1, 0), (2, 0)]), // Row 0
+        get_triplet([(0, 1), (1, 1), (2, 1)]), // Row 1
+        get_triplet([(0, 2), (1, 2), (2, 2)]), // Row 2
+        get_triplet([(0, 2), (1, 1), (2, 0)]), // +ve diagonal
+        get_triplet([(0, 0), (1, 1), (2, 2)]), // -ve diagonal
+    ];
+
+    let states: Vec<(CellShape, [(usize, usize); 3])> = triplets
+        .iter()
+        .filter_map(
+            // Map the arrays into an Option<CellShape> representing their win
+            |&(shapes, coords)| match shapes {
+                [Some(CellShape::X), Some(CellShape::X), Some(CellShape::X)] => {
+                    Some((CellShape::X, coords))
+                }
+                [Some(CellShape::O), Some(CellShape::O), Some(CellShape::O)] => {
+                    Some((CellShape::O, coords))
+                }
+                _ => None,
+            },
+        )
+        .collect::<Vec<_>>();
+
+    if states.len() > 1 {
+        Err(WinnerError::MultipleWinners)
+    } else {
+        match states.get(0) {
+            None => {
+                if is_board_full(cells) {
+                    Err(WinnerError::BoardFullNoWinner)
+                } else {
+                    Err(WinnerError::NoWinnerYet)
+                }
+            }
+            Some(x) => Ok(*x),
+        }
+    }
 }

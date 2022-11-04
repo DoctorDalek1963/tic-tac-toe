@@ -1,10 +1,10 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
 use super::{send_move_after_delay, NormalTTTApp};
-use crate::shared::{centered_square_in_rect, CellShape};
+use crate::shared::{centered_square_in_rect, draw_cellshape_in_rect, CellShape};
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
-    epaint::{CircleShape, Color32, Pos2, Stroke, Vec2},
+    epaint::{Color32, Pos2, Stroke, Vec2},
 };
 
 impl NormalTTTApp {
@@ -202,45 +202,8 @@ impl NormalTTTApp {
         interactive: bool,
     ) -> Response {
         let rect = centered_square_in_rect(rect, 0.8);
-        let stroke_width = rect.width() / 30.0;
 
-        match shape {
-            None => (),
-            Some(CellShape::X) => {
-                let rect = centered_square_in_rect(rect, 0.9);
-                let tl = rect.min;
-                let br = rect.max;
-                let bl = Pos2 { x: tl.x, y: br.y };
-                let tr = Pos2 { x: br.x, y: tl.y };
-
-                let stroke = Stroke {
-                    width: stroke_width,
-                    color: Color32::LIGHT_RED,
-                };
-
-                painter.extend(vec![
-                    Shape::LineSegment {
-                        points: [tl, br],
-                        stroke,
-                    },
-                    Shape::LineSegment {
-                        points: [bl, tr],
-                        stroke,
-                    },
-                ]);
-            }
-            Some(CellShape::O) => {
-                painter.add(Shape::Circle(CircleShape {
-                    center: rect.center(),
-                    radius: rect.width() / 2.2,
-                    fill: Color32::TRANSPARENT,
-                    stroke: Stroke {
-                        width: stroke_width,
-                        color: Color32::LIGHT_BLUE,
-                    },
-                }));
-            }
-        };
+        draw_cellshape_in_rect(painter, &rect, &shape, false);
 
         ui.allocate_rect(
             rect,
