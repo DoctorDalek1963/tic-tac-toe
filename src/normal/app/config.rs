@@ -1,22 +1,22 @@
 //! This module handles app configuration.
 
 use super::NormalTTTApp;
-use crate::shared::CellShape;
+use crate::CellShape;
 use eframe::egui::{self, Context};
 use serde::{Deserialize, Serialize};
 
 /// A struct representing the app configuration, meant to be saved and loaded between sessions.
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(default)]
-pub(crate) struct Config {
+pub struct Config {
     /// Whether the player should make the first move.
-    pub(crate) player_plays_first: bool,
+    pub player_plays_first: bool,
 
     /// Which shape the player uses.
-    pub(crate) player_shape: CellShape,
+    pub player_shape: CellShape,
 
     /// Whether the player is playing against an AI.
-    pub(crate) playing_ai: bool,
+    pub playing_ai: bool,
 }
 
 impl Default for Config {
@@ -31,7 +31,7 @@ impl Default for Config {
 
 impl NormalTTTApp {
     /// Draw the settings window as a non-collapsible, non-resizable, closable `egui` window.
-    pub(crate) fn draw_settings_window(&mut self, ctx: &Context) {
+    pub fn draw_settings_window(&mut self, ctx: &Context) {
         egui::Window::new("Settings")
             .collapsible(false)
             .resizable(false)

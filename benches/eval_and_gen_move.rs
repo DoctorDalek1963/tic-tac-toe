@@ -2,7 +2,7 @@ use criterion::{criterion_group, criterion_main};
 
 mod normal {
     use criterion::Criterion;
-    use tictactoe::{normal::board::Board, shared::CellShape};
+    use tictactoe::{normal::board::Board, CellShape};
 
     /// Return an assortment of board states to benchmark against.
     fn get_board_states() -> Vec<Board> {
@@ -43,7 +43,7 @@ mod normal {
                             MockCellShape::$i.into(),
                         ],
                     ],
-                    ai_shape: ::tictactoe::shared::CellShape::O,
+                    ai_shape: ::tictactoe::CellShape::O,
                 }
             }};
         }

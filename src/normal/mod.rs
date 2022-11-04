@@ -9,4 +9,4 @@ pub mod board;
 pub use self::app::NormalTTTApp;
 
 #[cfg(test)]
-mod test_utils;
+pub(crate) mod test_utils;

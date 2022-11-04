@@ -36,7 +36,7 @@ macro_rules! make_board {
                     $crate::test_utils::mock_cell_shape!($i),
                 ],
             ],
-            ai_shape: $crate::shared::CellShape::O,
+            ai_shape: $crate::CellShape::O,
         }
     }};
 }
@@ -46,7 +46,7 @@ pub(crate) use make_board;
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::shared::CellShape;
+    use crate::CellShape;
 
     #[test]
     fn make_board_macro_test() {

@@ -2,7 +2,7 @@
 //! [`eframe::App`](https://docs.rs/eframe/0.19.0/eframe/trait.App.html) to contain all variants. A
 //! variant must implement [`TTTVariantApp`] to be allowed as a variant.
 
-use crate::{normal::NormalTTTApp, shared::centered_square_in_rect, ultimate::UltimateTTTApp};
+use crate::{normal::NormalTTTApp, shared::gui::centered_square_in_rect, ultimate::UltimateTTTApp};
 use eframe::{
     egui::{self, Context, Ui},
     epaint::{Pos2, Rect},

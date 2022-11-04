@@ -5,10 +5,7 @@ mod gui;
 
 use self::config::Config;
 use super::{board::Board, Coord};
-use crate::{
-    app::TTTVariantApp,
-    shared::{centered_square_in_rect, CellShape},
-};
+use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
 use eframe::{
     egui::{self, Context},
     epaint::Color32,

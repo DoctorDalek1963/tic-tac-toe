@@ -1,8 +1,9 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
 use super::{send_move_after_delay, NormalTTTApp};
-use crate::shared::{
-    centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect, CellShape,
+use crate::{
+    shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
+    CellShape,
 };
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},
@@ -14,7 +15,7 @@ impl NormalTTTApp {
     ///
     /// This method also handles all the updating of the internal [`Board`](crate::normal::board::Board)
     /// when cells are clicked, and triggers an AI move with [`send_move_after_delay`] if AI is enabled.
-    pub(crate) fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
+    pub fn draw_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
         ctx.request_repaint();
 
         let painter = Painter::new(

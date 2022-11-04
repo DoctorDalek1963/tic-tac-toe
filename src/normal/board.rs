@@ -1,7 +1,10 @@
 //! This module handles the board and the AI player.
 
 use super::Coord;
-use crate::shared::{self, CellShape, WinnerError};
+use crate::shared::{
+    self,
+    board::{CellShape, WinnerError},
+};
 use itertools::Itertools;
 use rand::seq::SliceRandom;
 
@@ -44,14 +47,14 @@ impl Board {
     /// Check if the board is full.
     #[inline(always)]
     fn is_board_full(&self) -> bool {
-        shared::is_board_full(self.cells)
+        shared::board::is_board_full(self.cells)
     }
 
     /// Return the winner of the current board. See
-    /// [`shared::get_winner`](crate::shared::get_winner).
+    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
     #[inline(always)]
     pub fn get_winner(&self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
-        shared::get_winner(self.cells)
+        shared::board::get_winner(self.cells)
     }
 
     /// Return a vector of the coordinates of empty cells in the board.

@@ -5,12 +5,15 @@
 //! grid of cells.
 
 use super::GlobalCoord;
-use crate::shared::{self, CellShape, WinnerError};
+use crate::shared::{
+    self,
+    board::{CellShape, WinnerError},
+};
 use thiserror::Error;
 
 /// An enum to represent possible errors arising from making a move. See [`GlobalBoard::make_move`].
 #[derive(Clone, Copy, Debug, Error, PartialEq, Eq)]
-pub(crate) enum MoveError {
+pub enum MoveError {
     /// A move has been made in a local board which is not the
     /// [`next_local_board`](GlobalBoard::next_local_board).
     #[error("wrong local board")]
@@ -61,15 +64,15 @@ impl LocalBoard {
     /// Check if the board is full.
     #[inline(always)]
     fn is_board_full(&self) -> bool {
-        shared::is_board_full(self.cells)
+        shared::board::is_board_full(self.cells)
     }
 
     /// Return the winner of the current board. See
-    /// [`shared::get_winner`](crate::shared::get_winner).
+    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
     pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         match self.winner {
             None => {
-                let winner = shared::get_winner(self.cells)?;
+                let winner = shared::board::get_winner(self.cells)?;
                 self.winner = Some(winner);
                 Ok(winner)
             }
@@ -119,12 +122,12 @@ impl GlobalBoard {
     }
 
     /// Return the coordinates of the local board in which the next move must be played.
-    pub(crate) fn next_local_board(&self) -> Option<(usize, usize)> {
+    pub fn next_local_board(&self) -> Option<(usize, usize)> {
         self.next_local_board
     }
 
     /// Check if the given local board has won
-    pub(crate) fn has_local_board_won(
+    pub fn has_local_board_won(
         &mut self,
         x: usize,
         y: usize,
@@ -136,11 +139,7 @@ impl GlobalBoard {
     ///
     /// This method will also update the [`next_local_board`](Self::next_local_board), setting it
     /// to [`None`] if the target board is full.
-    pub(crate) fn make_move(
-        &mut self,
-        coord: GlobalCoord,
-        shape: CellShape,
-    ) -> Result<(), MoveError> {
+    pub fn make_move(&mut self, coord: GlobalCoord, shape: CellShape) -> Result<(), MoveError> {
         let (x, y, (lx, ly)) = coord;
 
         if x > 2 || y > 2 || lx > 2 || ly > 2 {
@@ -169,13 +168,13 @@ impl GlobalBoard {
     }
 
     /// Return the winner of the global board. See
-    /// [`shared::get_winner`](crate::shared::get_winner).
+    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
     pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         let cells: [[Option<CellShape>; 3]; 3] = self.local_boards.map(|arr| {
             arr.map(|mut board| board.get_winner().map_or(None, |(shape, _)| Some(shape)))
         });
 
-        let result = shared::get_winner(cells);
+        let result = shared::board::get_winner(cells);
         if result.is_ok() {
             self.next_local_board = None;
         }
@@ -185,7 +184,7 @@ impl GlobalBoard {
 
 #[cfg(test)]
 impl LocalBoard {
-    pub(crate) fn with_cells(cells: [[Option<CellShape>; 3]; 3]) -> Self {
+    pub fn with_cells(cells: [[Option<CellShape>; 3]; 3]) -> Self {
         Self {
             cells,
             ..Default::default()
@@ -196,7 +195,7 @@ impl LocalBoard {
 #[cfg(test)]
 impl GlobalBoard {
     /// Create a global board with the given array of local boards. Used in test macros.
-    pub(crate) fn with_local_boards(local_boards: [[LocalBoard; 3]; 3]) -> Self {
+    pub fn with_local_boards(local_boards: [[LocalBoard; 3]; 3]) -> Self {
         Self {
             local_boards,
             ..Default::default()
@@ -205,7 +204,7 @@ impl GlobalBoard {
 
     /// Create a global board with the given array of local boards and the next local board.
     /// Used in test macros.
-    pub(crate) fn with_local_boards_and_next_local_board(
+    pub fn with_local_boards_and_next_local_board(
         next_local_board: Option<(usize, usize)>,
         local_boards: [[LocalBoard; 3]; 3],
     ) -> Self {

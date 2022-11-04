@@ -178,8 +178,8 @@ pub(crate) use {_make_local_board, _make_local_board_arrays, make_global_board};
 mod tests {
     use super::*;
     use crate::{
-        shared::CellShape,
         ultimate::board::{GlobalBoard, LocalBoard},
+        CellShape,
     };
 
     #[test]

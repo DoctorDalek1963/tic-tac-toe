@@ -2,7 +2,7 @@
 
 use super::UltimateTTTApp;
 use crate::{
-    shared::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
+    shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
     ultimate::GlobalCoord,
 };
 use eframe::{
@@ -56,7 +56,7 @@ impl UltimateTTTApp {
     }
 
     /// Draw the board in the given rect.
-    pub(crate) fn draw_global_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
+    pub fn draw_global_board(&mut self, ctx: &Context, ui: &mut Ui, rect: Rect) {
         ctx.request_repaint();
 
         let painter = Painter::new(

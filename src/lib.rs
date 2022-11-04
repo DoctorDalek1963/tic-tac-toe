@@ -8,8 +8,10 @@ pub mod ultimate;
 pub mod app;
 pub mod shared;
 
+pub use self::shared::board::CellShape;
+
 #[cfg(target_arch = "wasm32")]
 mod fake_par_iter;
 
 #[cfg(test)]
-mod test_utils;
+pub(crate) mod test_utils;
