@@ -4,6 +4,8 @@
 //! is one global board. This global board is a 3x3 grid of local boards, each of which is a 3x3
 //! grid of cells.
 
+mod mcts;
+
 use super::GlobalCoord;
 use crate::shared::{
     self,

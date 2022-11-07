@@ -125,7 +125,7 @@ macro_rules! _make_local_board {
 
 /// Make an array of arrays of local boards for use in a global board.
 macro_rules! _make_local_board_arrays {
-    ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {
+    ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt$(;)?) => {
         [
             [
                 $crate::ultimate::test_utils::_make_local_board!($a),
