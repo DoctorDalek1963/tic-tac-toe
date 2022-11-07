@@ -1,6 +1,6 @@
 //! This module handles app configuration.
 
-use super::NormalTTTApp;
+use super::UltimateTTTApp;
 use crate::CellShape;
 use eframe::egui::{self, Context};
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 /// A struct representing the app configuration, meant to be saved and loaded between sessions.
 #[derive(Clone, Copy, Serialize, Deserialize)]
 #[serde(default)]
-pub struct NormalConfig {
+pub struct UltimateConfig {
     /// Whether the player should make the first move.
     pub player_plays_first: bool,
 
@@ -19,17 +19,17 @@ pub struct NormalConfig {
     pub playing_ai: bool,
 }
 
-impl Default for NormalConfig {
+impl Default for UltimateConfig {
     fn default() -> Self {
         Self {
             player_plays_first: true,
             player_shape: CellShape::X,
-            playing_ai: true,
+            playing_ai: false,
         }
     }
 }
 
-impl NormalTTTApp {
+impl UltimateTTTApp {
     /// Draw the settings window as a non-collapsible, non-resizable, closable `egui` window.
     pub fn draw_settings_window(&mut self, ctx: &Context) {
         egui::Window::new("Settings")
@@ -43,7 +43,15 @@ impl NormalTTTApp {
                 }
                 ui.set_style(style);
 
-                ui.checkbox(&mut self.config.playing_ai, "Play against AI");
+                ui.add_enabled(
+                    false,
+                    egui::Checkbox::new(
+                        &mut self.config.playing_ai,
+                        egui::WidgetText::RichText(
+                            egui::RichText::new("Play against AI").strikethrough(),
+                        ),
+                    ),
+                );
                 ui.add_enabled(
                     self.config.playing_ai,
                     egui::Checkbox::new(&mut self.config.player_plays_first, "Player plays first"),

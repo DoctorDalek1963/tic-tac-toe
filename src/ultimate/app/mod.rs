@@ -1,13 +1,21 @@
 //! This module handles the `egui` interface to the game.
 
+mod config;
 mod gui;
 
+use self::config::UltimateConfig;
 use super::{board::GlobalBoard, GlobalCoord};
 use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
-use eframe::egui;
+use eframe::{egui, epaint::Color32};
 
 /// The struct to hold the state of the app.
 pub struct UltimateTTTApp {
+    /// The configuration of the app.
+    config: UltimateConfig,
+
+    /// Whether the settings window is currently being shown.
+    showing_settings_window: bool,
+
     /// The full global board.
     global_board: GlobalBoard,
 
@@ -19,17 +27,29 @@ pub struct UltimateTTTApp {
 
 impl Default for UltimateTTTApp {
     fn default() -> Self {
-        Self::new(CellShape::X)
+        Self::new_with_config(UltimateConfig::default())
     }
 }
 
 impl UltimateTTTApp {
-    /// Create a new app with the given active shape.
-    pub fn new(active_shape: CellShape) -> Self {
+    /// Create a new app with the given config.
+    fn new_with_config(config: UltimateConfig) -> Self {
+        let global_board = GlobalBoard::new(config.player_shape.other());
+        let active_shape = config.player_shape;
+
         Self {
-            global_board: GlobalBoard::new(active_shape.other()),
+            config,
+            showing_settings_window: false,
+            global_board,
             active_shape,
         }
+    }
+
+    /// Update the interior state of the app with the current config.
+    ///
+    /// See [`Self::new_with_config`]
+    fn restart_game(&mut self) {
+        *self = Self::new_with_config(self.config);
     }
 
     /// Update the board to reflect a cell being clicked.
@@ -48,17 +68,65 @@ impl UltimateTTTApp {
 }
 
 impl TTTVariantApp for UltimateTTTApp {
-    fn new_app(_storage: Option<&dyn eframe::Storage>) -> Self
+    fn new_app(storage: Option<&dyn eframe::Storage>) -> Self
     where
         Self: Sized,
     {
-        Self::default()
+        let config = storage.map_or_else(UltimateConfig::default, |storage| {
+            eframe::get_value(storage, "ultimate_config").unwrap_or_default()
+        });
+
+        Self::new_with_config(config)
     }
 
     fn show_ui(&mut self, ctx: &eframe::egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
+            // Show the restart game and settings buttons
+            ui.horizontal(|ui| {
+                use eframe::epaint::{FontFamily, FontId};
+                use egui::TextStyle::Button;
+
+                let mut style = (*ctx.style()).clone();
+                style
+                    .text_styles
+                    .insert(Button, FontId::new(30., FontFamily::Proportional));
+                ui.set_style(style);
+
+                if ui
+                    .add(egui::Button::new("\u{27F3}").fill(Color32::TRANSPARENT))
+                    .clicked()
+                {
+                    self.restart_game();
+                }
+
+                if ui
+                    .add(
+                        egui::Button::new("\u{2699}").fill(if self.showing_settings_window {
+                            if ctx.style().visuals.dark_mode {
+                                Color32::from_rgb(0x00, 0x5C, 0x80)
+                            } else {
+                                Color32::from_rgb(0x90, 0xD1, 0xFF)
+                            }
+                        } else {
+                            Color32::TRANSPARENT
+                        }),
+                    )
+                    .clicked()
+                {
+                    self.showing_settings_window = !self.showing_settings_window;
+                }
+            });
+
             self.draw_global_board(ctx, ui, centered_square_in_rect(ui.clip_rect(), 0.9));
         });
+
+        if self.showing_settings_window {
+            self.draw_settings_window(ctx);
+        }
+    }
+
+    fn save_config(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, "ultimate_config", &self.config);
     }
 }
 

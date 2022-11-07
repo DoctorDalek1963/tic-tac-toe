@@ -3,7 +3,7 @@
 mod config;
 mod gui;
 
-use self::config::Config;
+use self::config::NormalConfig;
 use super::{board::Board, Coord};
 use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
 use eframe::{
@@ -45,7 +45,7 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
 /// The struct to hold the state of the app.
 pub struct NormalTTTApp {
     /// The configuration of the app.
-    config: Config,
+    config: NormalConfig,
 
     /// Whether the settings window is currently being shown.
     showing_settings_window: bool,
@@ -72,16 +72,16 @@ pub struct NormalTTTApp {
 
 impl Default for NormalTTTApp {
     fn default() -> Self {
-        Self::new_with_config(Config::default())
+        Self::new_with_config(NormalConfig::default())
     }
 }
 
 impl NormalTTTApp {
     /// Create a new app with the given config.
     ///
-    /// If [`Config::player_plays_first`] is false, then we also start an AI move in the background
+    /// If [`NormalConfig::player_plays_first`] is false, then we also start an AI move in the background
     /// by calling [`send_move_after_delay`].
-    fn new_with_config(config: Config) -> Self {
+    fn new_with_config(config: NormalConfig) -> Self {
         let (mv_tx, mv_rx) = mpsc::channel();
 
         let board = Board::new(config.player_shape.other());
@@ -132,7 +132,7 @@ impl TTTVariantApp for NormalTTTApp {
     where
         Self: Sized,
     {
-        let config = storage.map_or_else(Config::default, |storage| {
+        let config = storage.map_or_else(NormalConfig::default, |storage| {
             eframe::get_value(storage, "normal_config").unwrap_or_default()
         });
 

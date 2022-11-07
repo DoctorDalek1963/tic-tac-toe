@@ -42,7 +42,7 @@ pub enum WinnerError {
 
 /// Check if the board is full.
 ///
-/// This method does not check for a winner. See [`get_winner`](Board::get_winner).
+/// This method does not check for a winner. See [`get_winner`].
 pub fn is_board_full(cells: [[Option<CellShape>; 3]; 3]) -> bool {
     cells.iter().flatten().filter(|cell| cell.is_some()).count() == 9
 }
