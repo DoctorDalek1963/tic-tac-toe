@@ -42,23 +42,23 @@ mod normal {
         vec![
             Board::default(),
             make_board!(_ _ O; _ X _; _ _ X),
-            make_board!(_ _ X; _ X O; _),
+            make_board!(_ _ X; _ X O; _ _ _),
             make_board!(O _ O; _ X _; _ X X),
             make_board!(O _ O; _ X _; X _ X),
             make_board!(O X _; _ O X; X _ O),
             make_board!(O X O; X O X; O X X),
-            make_board!(X _ O; X O _; _),
-            make_board!(X O _; _ X _; _),
+            make_board!(X _ O; X O _; _ _ _),
+            make_board!(X O _; _ X _; _ _ _),
             make_board!(X O _; _ X O; O _ X),
             make_board!(X O _; X O O; X O _),
             make_board!(X O O; O X X; X X O),
             make_board!(X O X; _ X O; _ O X),
             make_board!(X O X; _ X O; O X O),
-            make_board!(X O X; X O _; _),
+            make_board!(X O X; X O _; _ _ _),
             make_board!(X O X; X X O; O _ O),
             make_board!(X X _; _ O _; O _ _),
             make_board!(X X O; O X X; O _ O),
-            make_board!(X X X; O O O; _),
+            make_board!(X X X; O O O; _ _ _),
         ]
     }
 
