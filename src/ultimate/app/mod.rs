@@ -7,6 +7,37 @@ use self::config::UltimateConfig;
 use super::{board::GlobalBoard, GlobalCoord};
 use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
 use eframe::{egui, epaint::Color32};
+use std::sync::mpsc;
+
+/// This method sends an AI-generated move down an `mpsc` channel when it's ready.
+#[cfg(not(target_arch = "wasm32"))]
+fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<GlobalCoord>>) {
+    use std::{
+        thread,
+        time::{Duration, Instant},
+    };
+
+    thread::spawn(move || {
+        let start = Instant::now();
+        let mv = global_board.generate_ai_move();
+        thread::sleep(Duration::from_millis(200) - start.elapsed());
+        let _ = tx.send(mv);
+    });
+}
+
+/// This method sends an AI-generated move down an `mpsc` channel when it's ready.
+#[cfg(target_arch = "wasm32")]
+fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<GlobalCoord>>) {
+    use stdweb::web::Date;
+
+    let start = Date::now(); // millis
+    let mv = global_board.generate_ai_move();
+
+    gloo_timers::callback::Timeout::new((200. - (Date::now() - start)) as u32, move || {
+        let _ = tx.send(mv);
+    })
+    .forget();
+}
 
 /// The struct to hold the state of the app.
 pub struct UltimateTTTApp {
@@ -23,6 +54,17 @@ pub struct UltimateTTTApp {
     ///
     /// See [`update_cell`](UltimateTTTApp::update_cell).
     active_shape: CellShape,
+
+    /// Whether we're currently waiting for the AI to make a move.
+    waiting_on_move: bool,
+
+    /// The AI moves are computed in a background thread to make the UI more snappy. This is the
+    /// sender that we pass to the background thread to get the AI move back.
+    mv_tx: mpsc::Sender<Option<GlobalCoord>>,
+
+    /// The AI moves are computed in a background thread to make the UI more snappy. This is the
+    /// receiver that receives the computed AI moves.
+    mv_rx: mpsc::Receiver<Option<GlobalCoord>>,
 }
 
 impl Default for UltimateTTTApp {
@@ -33,15 +75,30 @@ impl Default for UltimateTTTApp {
 
 impl UltimateTTTApp {
     /// Create a new app with the given config.
+    ///
+    /// If [`UltimateConfig::player_plays_first`] is false, then we also start an AI move in the
+    /// background by calling [`send_move_after_delay`].
     fn new_with_config(config: UltimateConfig) -> Self {
+        let (mv_tx, mv_rx) = mpsc::channel();
+
         let global_board = GlobalBoard::new(config.player_shape.other());
-        let active_shape = config.player_shape;
+        let waiting_on_move = config.playing_ai && !config.player_plays_first;
+
+        let active_shape = if waiting_on_move && config.playing_ai {
+            send_move_when_ready(global_board.clone(), mv_tx.clone());
+            config.player_shape.other()
+        } else {
+            config.player_shape
+        };
 
         Self {
             config,
             showing_settings_window: false,
             global_board,
             active_shape,
+            waiting_on_move,
+            mv_tx,
+            mv_rx,
         }
     }
 

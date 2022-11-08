@@ -1,6 +1,6 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
-use super::UltimateTTTApp;
+use super::{send_move_when_ready, UltimateTTTApp};
 use crate::{
     shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
     ultimate::GlobalCoord,
@@ -82,6 +82,13 @@ impl UltimateTTTApp {
             }
         }
 
+        if self.waiting_on_move {
+            if let Ok(Some(coord)) = self.mv_rx.try_recv() {
+                self.update_cell(coord);
+                self.waiting_on_move = false;
+            }
+        }
+
         // Draw the winning line
         if let Ok((_, [start_coord, _, end_coord])) = self.global_board.get_winner() {
             draw_winning_line_in_rect(
@@ -138,8 +145,14 @@ impl UltimateTTTApp {
                 if self
                     .draw_cell(ui, painter, cell_rect, global_coord)
                     .clicked()
+                    && !self.waiting_on_move
                 {
                     self.update_cell(global_coord);
+
+                    if self.config.playing_ai {
+                        send_move_when_ready(self.global_board.clone(), self.mv_tx.clone());
+                        self.waiting_on_move = true;
+                    }
                 }
             }
         }
@@ -164,7 +177,7 @@ impl UltimateTTTApp {
         let shape = self.global_board.local_boards[x][y].cells[lx][ly];
         let interactive: bool = (self.global_board.next_local_board() == Some((x, y))
             || self.global_board.next_local_board().is_none())
-            && shape == None
+            && shape.is_none()
             && self.global_board.get_winner().is_err();
 
         draw_cellshape_in_rect(painter, &rect, shape, false);

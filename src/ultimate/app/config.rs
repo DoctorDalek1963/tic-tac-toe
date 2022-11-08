@@ -43,15 +43,7 @@ impl UltimateTTTApp {
                 }
                 ui.set_style(style);
 
-                ui.add_enabled(
-                    false,
-                    egui::Checkbox::new(
-                        &mut self.config.playing_ai,
-                        egui::WidgetText::RichText(
-                            egui::RichText::new("Play against AI").strikethrough(),
-                        ),
-                    ),
-                );
+                ui.checkbox(&mut self.config.playing_ai, "Play against AI");
                 ui.add_enabled(
                     self.config.playing_ai,
                     egui::Checkbox::new(&mut self.config.player_plays_first, "Player plays first"),

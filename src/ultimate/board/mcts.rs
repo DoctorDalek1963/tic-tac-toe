@@ -1,8 +1,11 @@
 //! This module provides functionality for an AI based on Monte Carlo tree search (MCTS).
 
+use rand::{seq::SliceRandom, thread_rng};
+
 use super::GlobalBoard;
 use crate::ultimate::GlobalCoord;
 
+/// The coordinates of all the cells in the global board.
 #[rustfmt::skip]
 const ALL_CELLS: [GlobalCoord; 81] = [
     (0, 0, (0, 0)), (0, 0, (1, 0)), (0, 0, (2, 0)),
@@ -43,6 +46,7 @@ const ALL_CELLS: [GlobalCoord; 81] = [
 ];
 
 impl GlobalBoard {
+    /// Return a vec of all the legal moves on the global board.
     fn legal_moves(&self) -> Vec<GlobalCoord> {
         match self.next_local_board() {
             None => ALL_CELLS.to_vec(),
@@ -62,6 +66,17 @@ impl GlobalBoard {
             }
         })
         .collect()
+    }
+
+    /// Return the AI-chosen optimal move, which could be none if the board is full.
+    pub fn generate_ai_move(&self) -> Option<GlobalCoord> {
+        let legal_moves = self.legal_moves();
+
+        if legal_moves.is_empty() {
+            return None;
+        }
+
+        Some(*legal_moves.choose(&mut thread_rng()).unwrap())
     }
 }
 

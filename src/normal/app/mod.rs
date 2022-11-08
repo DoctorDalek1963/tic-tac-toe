@@ -79,8 +79,8 @@ impl Default for NormalTTTApp {
 impl NormalTTTApp {
     /// Create a new app with the given config.
     ///
-    /// If [`NormalConfig::player_plays_first`] is false, then we also start an AI move in the background
-    /// by calling [`send_move_after_delay`].
+    /// If [`NormalConfig::player_plays_first`] is false, then we also start an AI move in the
+    /// background by calling [`send_move_after_delay`].
     fn new_with_config(config: NormalConfig) -> Self {
         let (mv_tx, mv_rx) = mpsc::channel();
 

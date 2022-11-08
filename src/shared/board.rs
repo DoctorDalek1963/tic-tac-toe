@@ -1,5 +1,6 @@
 //! This module provides types and functions that are shared between variant backends.
 
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -48,6 +49,10 @@ pub fn is_board_full(cells: [[Option<CellShape>; 3]; 3]) -> bool {
 }
 
 /// Return the winner in the current board position, or a variant of [`WinnerError`] if there is no winner.
+///
+/// If there are multiple winning lines but they have the same winner (a configuration possible in
+/// certain variants), then that shape wins. The winning line in this case is *one* of the lines
+/// where a win occured, but no guarantees are given as to which line it will be.
 ///
 /// # Errors
 ///
@@ -101,6 +106,7 @@ pub fn get_winner(
                 _ => None,
             },
         )
+        .unique_by(|&(shape, _)| shape)
         .collect::<Vec<_>>();
 
     if states.len() > 1 {
@@ -116,5 +122,75 @@ pub fn get_winner(
             }
             Some(x) => Ok(*x),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn get_winner_test() {
+        use crate::normal::{board::Board, test_utils::make_board};
+
+        let board = Board::default();
+        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
+
+        // X| |
+        //  |O|
+        //  | |
+        let board = make_board!(X _ _; _ O _; _);
+        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
+
+        // X|O|X
+        //  |X|O
+        //  |O|X
+        let board = make_board!(X O X; _ X O; _ O X);
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::X, [(0, 0), (1, 1), (2, 2)]))
+        );
+
+        // O|X|O
+        // X|O|X
+        // O|X|X
+        let board = make_board!(O X O; X O X; O X X);
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::O, [(0, 2), (1, 1), (2, 0)]))
+        );
+
+        // O|X|O
+        // O|O|X
+        // X|X|X
+        let board = make_board!(O X O; O O X; X X X);
+        assert_eq!(
+            board.get_winner(),
+            Ok((CellShape::X, [(0, 2), (1, 2), (2, 2)]))
+        );
+
+        // X|O|O
+        // O|X|X
+        // X|X|O
+        let board = make_board!(X O O; O X X; X X O);
+        assert_eq!(board.get_winner(), Err(WinnerError::BoardFullNoWinner));
+
+        // X|X|X
+        // O|O|O
+        //  | |
+        let board = make_board!(X X X; O O O; _);
+        assert_eq!(board.get_winner(), Err(WinnerError::MultipleWinners));
+
+        // X| |O
+        // X|X|O
+        // O|O|O
+        let board = make_board!(X _ O; X X O; O O O);
+        assert!(matches!(board.get_winner(), Ok((CellShape::O, [_, _, _]))));
+
+        // O| |X
+        // O|O|X
+        // X|X|X
+        let board = make_board!(O _ X; O O X; X X X);
+        assert!(matches!(board.get_winner(), Ok((CellShape::X, [_, _, _]))));
     }
 }

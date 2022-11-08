@@ -180,57 +180,6 @@ mod tests {
     use crate::normal::test_utils::make_board;
 
     #[test]
-    fn get_winner_test() {
-        let board = Board::default();
-        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
-
-        // X| |
-        //  |O|
-        //  | |
-        let board = make_board!(X _ _; _ O _; _);
-        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
-
-        // X|O|X
-        //  |X|O
-        //  |O|X
-        let board = make_board!(X O X; _ X O; _ O X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::X, [(0, 0), (1, 1), (2, 2)]))
-        );
-
-        // O|X|O
-        // X|O|X
-        // O|X|X
-        let board = make_board!(O X O; X O X; O X X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::O, [(0, 2), (1, 1), (2, 0)]))
-        );
-
-        // O|X|O
-        // O|O|X
-        // X|X|X
-        let board = make_board!(O X O; O O X; X X X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::X, [(0, 2), (1, 2), (2, 2)]))
-        );
-
-        // X|O|O
-        // O|X|X
-        // X|X|O
-        let board = make_board!(X O O; O X X; X X O);
-        assert_eq!(board.get_winner(), Err(WinnerError::BoardFullNoWinner));
-
-        // X|X|X
-        // O|O|O
-        //  | |
-        let board = make_board!(X X X; O O O; _);
-        assert_eq!(board.get_winner(), Err(WinnerError::MultipleWinners));
-    }
-
-    #[test]
     fn get_empty_cells_test() {
         let board = Board::default();
         assert_eq!(
