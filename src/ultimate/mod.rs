@@ -14,5 +14,5 @@ pub mod board;
 
 pub use self::app::UltimateTTTApp;
 
-#[cfg(test)]
-pub(crate) mod test_utils;
+#[cfg(any(test, feature = "bench"))]
+pub mod test_utils;

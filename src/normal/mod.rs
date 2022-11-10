@@ -8,5 +8,8 @@ pub mod board;
 
 pub use self::app::NormalTTTApp;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "bench")))]
 pub(crate) mod test_utils;
+
+#[cfg(feature = "bench")]
+pub mod test_utils;

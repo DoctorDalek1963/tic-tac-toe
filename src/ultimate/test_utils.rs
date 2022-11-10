@@ -17,6 +17,7 @@
 /// -----
 ///  | |
 /// ```
+#[cfg_attr(feature = "bench", macro_export)]
 macro_rules! _make_local_board {
     (()) => {
         $crate::ultimate::board::LocalBoard::new()
@@ -124,6 +125,7 @@ macro_rules! _make_local_board {
 }
 
 /// Make an array of arrays of local boards for use in a global board.
+#[cfg_attr(feature = "bench", macro_export)]
 macro_rules! _make_local_board_arrays {
     ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt$(;)?) => {
         [
@@ -150,6 +152,7 @@ macro_rules! _make_local_board_arrays {
 /// coordinate specifier at the start, which can be a tuple or `None`.
 ///
 /// See [`_make_local_board`] for the local board syntax.
+#[cfg_attr(feature = "bench", macro_export)]
 macro_rules! make_global_board {
     (next = None, $($arr:tt)+ ) => {
         $crate::ultimate::board::GlobalBoard::with_local_boards_and_next_local_board(
@@ -172,7 +175,11 @@ macro_rules! make_global_board {
     };
 }
 
+#[cfg(not(feature = "bench"))]
 pub(crate) use {_make_local_board, _make_local_board_arrays, make_global_board};
+
+#[cfg(feature = "bench")]
+pub use {_make_local_board, _make_local_board_arrays, make_global_board};
 
 #[cfg(test)]
 mod tests {

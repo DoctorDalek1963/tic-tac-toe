@@ -31,6 +31,9 @@ stdweb = "0.4.20"
 [dev-dependencies]
 criterion = "0.4.0"
 
+[features]
+bench = []
+
 [[bench]]
 name = "eval_and_gen_move"
 harness = false

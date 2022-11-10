@@ -1,44 +1,16 @@
+#![cfg(feature = "bench")]
+
 use criterion::{criterion_group, criterion_main};
 
 mod normal {
     use criterion::Criterion;
-    use tictactoe::{normal::board::Board, CellShape};
+    use tictactoe::{
+        normal::{board::Board, test_utils::make_board},
+        CellShape,
+    };
 
     /// Return an assortment of board states to benchmark against.
     fn get_board_states() -> Vec<Board> {
-        // This macro code was copied from src/test_utils.rs and src/normal/test_utils.rs
-        #[rustfmt::skip]
-        macro_rules! mock_cell_shape {
-            (X) => { Some(::tictactoe::CellShape::X) };
-            (O) => { Some(::tictactoe::CellShape::O) };
-            (_) => { None };
-        }
-
-        macro_rules! make_board {
-            ($a:tt $b:tt $c:tt; $d:tt $e:tt $f:tt; $g:tt $h:tt $i:tt) => {{
-                ::tictactoe::normal::board::Board {
-                    cells: [
-                        [
-                            mock_cell_shape!($a),
-                            mock_cell_shape!($d),
-                            mock_cell_shape!($g),
-                        ],
-                        [
-                            mock_cell_shape!($b),
-                            mock_cell_shape!($e),
-                            mock_cell_shape!($h),
-                        ],
-                        [
-                            mock_cell_shape!($c),
-                            mock_cell_shape!($f),
-                            mock_cell_shape!($i),
-                        ],
-                    ],
-                    ai_shape: ::tictactoe::CellShape::O,
-                }
-            }};
-        }
-
         vec![
             Board::default(),
             make_board!(_ _ O; _ X _; _ _ X),
@@ -89,5 +61,102 @@ mod normal {
     }
 }
 
-criterion_group!(benches, normal::bench_eval_and_move);
+mod ultimate {
+    use criterion::Criterion;
+    use tictactoe::ultimate::{board::GlobalBoard, test_utils::make_global_board};
+
+    const ARRAY_OF_MAX_ITERATIONS: [u16; 3] = [1000, 5000, 10_000];
+
+    pub mod early_game {
+        use super::*;
+
+        fn get_global_board_states() -> Vec<GlobalBoard> {
+            vec![
+                make_global_board! {
+                    next = (0, 2),
+                    () (_; _ X _; _) (_; _; X _ _);
+                    () (_ O O; _ X _; _) ();
+                    () () ();
+                },
+                make_global_board! {
+                    next = (0, 2),
+                    () () (_; _; X _ _);
+                    () (_ _ O; _ X _; _ _ O) (_; _; _ X _);
+                    (_; _ X O; _) (_; _; O _ _) (_; _; X _ _);
+                },
+                make_global_board! {
+                    next = (1, 1),
+                    (_; _ _ O; _) () ();
+                    (_; _ X _; _ _ X) (_; _ O X; X X X) (_; O X _; _);
+                    (_; _ O _; _) (_; _ O _; _) (X _ _; _ O _; _ _ O);
+                },
+            ]
+        }
+
+        pub fn bench_move(c: &mut Criterion) {
+            let global_board_states = get_global_board_states();
+            let mut group = c.benchmark_group("ultimate::early_game");
+            group.sample_size(10);
+
+            for i in ARRAY_OF_MAX_ITERATIONS {
+                group.bench_function(&format!("generate_ai_move({i})"), |b| {
+                    b.iter(|| {
+                        for global_board in &global_board_states {
+                            global_board.generate_ai_move(i);
+                        }
+                    })
+                });
+            }
+        }
+    }
+
+    pub mod late_game {
+        use super::*;
+
+        fn get_global_board_states() -> Vec<GlobalBoard> {
+            vec![
+                make_global_board! {
+                    next = (1, 2),
+                    (_; O X _; _) (_; O X _; _) (_ X O; _ X O; O O O);
+                    (X _ X; X X O; _ O X) (O O O; O X O; O O O) (_ _ X; O X X; _ _ X);
+                    (_ _ X; X X _; O _ O) (_ _ X; _ X _; X _ _) (_ _ X; O X O; X X O);
+                },
+                make_global_board! {
+                    next = (1, 2),
+                    (_ _ X; _ X _; X O O) (X O X; _ X _; X _ _) (O O O; X X _; _ O _);
+                    (_; _ X _; _ _ O) (O O O; O X O; O O O) (_; _ X _; _ X _);
+                    (O O _; _ X O; _) (_ _ X; _ X _; X _ O) (_ X X; _ X _; _ X _);
+                },
+                make_global_board! {
+                    next = (0, 2),
+                    (X X X; O X X; X X O) (O _ _; X X X; _) (O _ O; X X O; _ _ O);
+                    (O O X; X X O; X _ _) (O O O; O X O; O O O) (O O X; O X X; X _ _);
+                    (O _ _; O X _; _) (O _ _; _ X _; _) (X _ _; _ X O; _ _ X);
+                },
+            ]
+        }
+
+        pub fn bench_move(c: &mut Criterion) {
+            let global_board_states = get_global_board_states();
+            let mut group = c.benchmark_group("ultimate::late_game");
+
+            for i in ARRAY_OF_MAX_ITERATIONS {
+                group.bench_function(&format!("generate_ai_move({i})"), |b| {
+                    b.iter(|| {
+                        for global_board in &global_board_states {
+                            global_board.generate_ai_move(i);
+                        }
+                    })
+                });
+            }
+        }
+    }
+}
+
+criterion_group!(
+    benches,
+    normal::bench_eval_and_move,
+    ultimate::early_game::bench_move,
+    ultimate::late_game::bench_move,
+);
 criterion_main!(benches);

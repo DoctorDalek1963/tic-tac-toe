@@ -164,7 +164,7 @@ impl Default for Board {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "bench"))]
 impl Board {
     pub fn with_cell_array(cells: [[Option<CellShape>; 3]; 3]) -> Self {
         Self {
