@@ -2,7 +2,10 @@
 
 use super::{send_move_when_ready, UltimateTTTApp};
 use crate::{
-    shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
+    shared::{
+        board::WinnerError,
+        gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
+    },
     ultimate::GlobalCoord,
 };
 use eframe::{
@@ -149,7 +152,9 @@ impl UltimateTTTApp {
                 {
                     self.update_cell(global_coord);
 
-                    if self.config.playing_ai {
+                    if self.config.playing_ai
+                        && self.global_board.get_winner() == Err(WinnerError::NoWinnerYet)
+                    {
                         send_move_when_ready(self.global_board.clone(), self.mv_tx.clone());
                         self.waiting_on_move = true;
                     }

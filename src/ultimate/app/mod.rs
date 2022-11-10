@@ -20,7 +20,10 @@ fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<Globa
     thread::spawn(move || {
         let start = Instant::now();
         let mv = global_board.generate_ai_move();
-        thread::sleep(Duration::from_millis(200) - start.elapsed());
+        thread::sleep(Duration::saturating_sub(
+            Duration::from_millis(750),
+            start.elapsed(),
+        ));
         let _ = tx.send(mv);
     });
 }
@@ -28,14 +31,17 @@ fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<Globa
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(target_arch = "wasm32")]
 fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<GlobalCoord>>) {
+    use gloo_timers::callback::Timeout;
     use stdweb::web::Date;
 
     let start = Date::now(); // millis
-    let mv = global_board.generate_ai_move();
 
-    gloo_timers::callback::Timeout::new((200. - (Date::now() - start)) as u32, move || {
-        let _ = tx.send(mv);
-    })
+    Timeout::new(
+        u32::saturating_sub(750, (Date::now() - start) as u32),
+        move || {
+            let _ = tx.send(global_board.generate_ai_move());
+        },
+    )
     .forget();
 }
 
