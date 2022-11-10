@@ -155,7 +155,11 @@ impl UltimateTTTApp {
                     if self.config.playing_ai
                         && self.global_board.get_winner() == Err(WinnerError::NoWinnerYet)
                     {
-                        send_move_when_ready(self.global_board.clone(), self.mv_tx.clone());
+                        send_move_when_ready(
+                            self.global_board.clone(),
+                            self.config.max_mcts_iterations,
+                            self.mv_tx.clone(),
+                        );
                         self.waiting_on_move = true;
                     }
                 }

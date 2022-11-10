@@ -11,7 +11,11 @@ use std::sync::mpsc;
 
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(not(target_arch = "wasm32"))]
-fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<GlobalCoord>>) {
+fn send_move_when_ready(
+    global_board: GlobalBoard,
+    max_iters: u16,
+    tx: mpsc::Sender<Option<GlobalCoord>>,
+) {
     use std::{
         thread,
         time::{Duration, Instant},
@@ -19,7 +23,7 @@ fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<Globa
 
     thread::spawn(move || {
         let start = Instant::now();
-        let mv = global_board.generate_ai_move();
+        let mv = global_board.generate_ai_move(max_iters);
         thread::sleep(Duration::saturating_sub(
             Duration::from_millis(750),
             start.elapsed(),
@@ -30,7 +34,11 @@ fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<Globa
 
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(target_arch = "wasm32")]
-fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<GlobalCoord>>) {
+fn send_move_when_ready(
+    global_board: GlobalBoard,
+    max_iters: u16,
+    tx: mpsc::Sender<Option<GlobalCoord>>,
+) {
     use gloo_timers::callback::Timeout;
     use stdweb::web::Date;
 
@@ -39,7 +47,7 @@ fn send_move_when_ready(global_board: GlobalBoard, tx: mpsc::Sender<Option<Globa
     Timeout::new(
         u32::saturating_sub(750, (Date::now() - start) as u32),
         move || {
-            let _ = tx.send(global_board.generate_ai_move());
+            let _ = tx.send(global_board.generate_ai_move(max_iters));
         },
     )
     .forget();
@@ -91,7 +99,11 @@ impl UltimateTTTApp {
         let waiting_on_move = config.playing_ai && !config.player_plays_first;
 
         let active_shape = if waiting_on_move && config.playing_ai {
-            send_move_when_ready(global_board.clone(), mv_tx.clone());
+            send_move_when_ready(
+                global_board.clone(),
+                config.max_mcts_iterations,
+                mv_tx.clone(),
+            );
             config.player_shape.other()
         } else {
             config.player_shape

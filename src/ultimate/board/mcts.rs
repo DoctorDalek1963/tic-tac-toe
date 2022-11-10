@@ -260,7 +260,7 @@ impl GlobalBoard {
         self.legal_moves().choose(&mut thread_rng()).copied()
     }
 
-    fn do_mcts(&self) -> Option<GlobalCoord> {
+    fn do_mcts(&self, iterations: u16) -> Option<GlobalCoord> {
         if self.legal_moves().is_empty() {
             return None;
         }
@@ -269,7 +269,7 @@ impl GlobalBoard {
         Node::expand(root);
         let mut next = Node::select_node(root);
 
-        for _ in 1..10_000 {
+        for _ in 1..iterations {
             Node::expand(&next);
             next = Node::select_node(root);
         }
@@ -282,8 +282,8 @@ impl GlobalBoard {
     }
 
     /// Return the AI-chosen optimal move, which could be none if the board is full.
-    pub fn generate_ai_move(&self) -> Option<GlobalCoord> {
-        self.do_mcts()
+    pub fn generate_ai_move(&self, max_mcts_iterations: u16) -> Option<GlobalCoord> {
+        self.do_mcts(max_mcts_iterations)
     }
 }
 
