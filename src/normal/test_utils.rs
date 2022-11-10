@@ -16,6 +16,7 @@
 /// -----
 ///  | |
 /// ```
+#[cfg_attr(feature = "bench", macro_export)]
 macro_rules! make_board {
     (_; _; _) => {
         $crate::normal::board::Board::default()
@@ -119,7 +120,11 @@ macro_rules! make_board {
     }};
 }
 
+#[cfg(not(feature = "bench"))]
 pub(crate) use make_board;
+
+#[cfg(feature = "bench")]
+pub use make_board;
 
 #[cfg(test)]
 mod tests {

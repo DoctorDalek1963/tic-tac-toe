@@ -13,5 +13,8 @@ pub use self::shared::board::CellShape;
 #[cfg(target_arch = "wasm32")]
 mod fake_par_iter;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "bench")))]
 pub(crate) mod test_utils;
+
+#[cfg(feature = "bench")]
+pub mod test_utils;

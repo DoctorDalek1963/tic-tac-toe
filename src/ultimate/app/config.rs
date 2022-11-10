@@ -17,6 +17,9 @@ pub struct UltimateConfig {
 
     /// Whether the player is playing against an AI.
     pub playing_ai: bool,
+
+    /// The maximum number of iterations for the AI's MCTS algorithm.
+    pub max_mcts_iterations: u16,
 }
 
 impl Default for UltimateConfig {
@@ -25,6 +28,7 @@ impl Default for UltimateConfig {
             player_plays_first: true,
             player_shape: CellShape::X,
             playing_ai: false,
+            max_mcts_iterations: 1000,
         }
     }
 }
@@ -43,15 +47,7 @@ impl UltimateTTTApp {
                 }
                 ui.set_style(style);
 
-                ui.add_enabled(
-                    false,
-                    egui::Checkbox::new(
-                        &mut self.config.playing_ai,
-                        egui::WidgetText::RichText(
-                            egui::RichText::new("Play against AI").strikethrough(),
-                        ),
-                    ),
-                );
+                ui.checkbox(&mut self.config.playing_ai, "Play against AI");
                 ui.add_enabled(
                     self.config.playing_ai,
                     egui::Checkbox::new(&mut self.config.player_plays_first, "Player plays first"),
@@ -65,6 +61,19 @@ impl UltimateTTTApp {
                     ui.radio_value(&mut self.config.player_shape, CellShape::X, "X");
                     ui.radio_value(&mut self.config.player_shape, CellShape::O, "O");
                 });
+
+                if self.config.playing_ai {
+                    ui.separator();
+
+                    ui.collapsing("AI Config", |ui| {
+                        ui.add(
+                            egui::Slider::new(&mut self.config.max_mcts_iterations, 1..=15_000u16)
+                                .clamp_to_range(true)
+                                .text("Max iterations of MCTS algorithm"),
+                        );
+                    });
+                }
+
                 ui.small("Changes will require a game restart.");
             });
     }

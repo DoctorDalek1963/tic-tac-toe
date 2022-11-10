@@ -4,6 +4,8 @@
 //! is one global board. This global board is a 3x3 grid of local boards, each of which is a 3x3
 //! grid of cells.
 
+mod mcts;
+
 use super::GlobalCoord;
 use crate::shared::{
     self,
@@ -182,7 +184,7 @@ impl GlobalBoard {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "bench"))]
 impl LocalBoard {
     pub fn with_cells(cells: [[Option<CellShape>; 3]; 3]) -> Self {
         Self {
@@ -192,7 +194,7 @@ impl LocalBoard {
     }
 }
 
-#[cfg(test)]
+#[cfg(any(test, feature = "bench"))]
 impl GlobalBoard {
     /// Create a global board with the given array of local boards. Used in test macros.
     pub fn with_local_boards(local_boards: [[LocalBoard; 3]; 3]) -> Self {
