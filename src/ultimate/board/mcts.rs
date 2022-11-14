@@ -283,18 +283,26 @@ impl GlobalBoard {
 
     /// Return the AI-chosen optimal move, which could be none if the board is full.
     pub fn generate_ai_move(&self, max_mcts_iterations: u16) -> Option<GlobalCoord> {
-        for mv in self.legal_moves() {
-            let mut board = self.clone();
-            board
-                .make_move(mv, self.ai_shape)
-                .expect("A legal move should never result in a `MoveError`");
+        let legal_moves = self.legal_moves();
 
-            if matches!(board.get_winner(), Ok((shape, _)) if shape == self.ai_shape) {
-                return Some(mv);
+        match legal_moves.len() {
+            0 => None,
+            1 => legal_moves.get(0).copied(),
+            _ => {
+                for mv in legal_moves {
+                    let mut board = self.clone();
+                    board
+                        .make_move(mv, self.ai_shape)
+                        .expect("A legal move should never result in a `MoveError`");
+
+                    if matches!(board.get_winner(), Ok((shape, _)) if shape == self.ai_shape) {
+                        return Some(mv);
+                    }
+                }
+
+                self.do_mcts(max_mcts_iterations)
             }
         }
-
-        self.do_mcts(max_mcts_iterations)
     }
 }
 
