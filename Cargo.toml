@@ -1,6 +1,7 @@
 [package]
 name = "tic-tac-toe"
 version = "0.1.0"
+rust-version = "1.65"
 edition = "2021"
 repository = "https://github.com/DoctorDalek1963/tic-tac-toe"
 license = "MIT"
@@ -30,6 +31,9 @@ stdweb = "0.4.20"
 [dev-dependencies]
 criterion = "0.4.0"
 
+[features]
+bench = []
+
 [[bench]]
-name = "eval_and_minimax"
+name = "eval_and_gen_move"
 harness = false

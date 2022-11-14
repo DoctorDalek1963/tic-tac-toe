@@ -3,24 +3,14 @@
 mod config;
 mod gui;
 
-use self::config::Config;
-use crate::{
-    board::{Board, CellShape},
-    Coord,
-};
+use self::config::NormalConfig;
+use super::{board::Board, Coord};
+use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
 use eframe::{
-    egui::{self, Context, Rect},
-    epaint::{Color32, Vec2},
+    egui::{self, Context},
+    epaint::Color32,
 };
 use std::sync::mpsc;
-
-/// Create a centered square in the given rect, taking up the given percentage of length.
-fn centered_square_in_rect(rect: Rect, percent: f32) -> Rect {
-    let Vec2 { x, y } = rect.max - rect.min;
-    let length = percent * x.min(y);
-
-    Rect::from_center_size(rect.center(), Vec2::splat(length))
-}
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
@@ -53,9 +43,9 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
 }
 
 /// The struct to hold the state of the app.
-pub struct TicTacToeApp {
+pub struct NormalTTTApp {
     /// The configuration of the app.
-    config: Config,
+    config: NormalConfig,
 
     /// Whether the settings window is currently being shown.
     showing_settings_window: bool,
@@ -65,7 +55,7 @@ pub struct TicTacToeApp {
 
     /// The shape that will be used for the next cell to be placed.
     ///
-    /// See [`update_cell`](TicTacToeApp::update_cell).
+    /// See [`update_cell`](NormalTTTApp::update_cell).
     active_shape: CellShape,
 
     /// Whether we're currently waiting for the AI to make a move.
@@ -80,27 +70,18 @@ pub struct TicTacToeApp {
     mv_rx: mpsc::Receiver<Option<Coord>>,
 }
 
-impl Default for TicTacToeApp {
+impl Default for NormalTTTApp {
     fn default() -> Self {
-        Self::new_with_config(Config::default())
+        Self::new_with_config(NormalConfig::default())
     }
 }
 
-impl TicTacToeApp {
-    /// Create a new app, attempting to restore previous [`Config`], or using the default config.
-    pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-        let config = cc.storage.map_or_else(Config::default, |storage| {
-            eframe::get_value(storage, "config").unwrap_or_default()
-        });
-
-        Self::new_with_config(config)
-    }
-
+impl NormalTTTApp {
     /// Create a new app with the given config.
     ///
-    /// If [`Config::player_plays_first`] is false, then we also start an AI move in the background
-    /// by calling [`send_move_after_delay`].
-    fn new_with_config(config: Config) -> Self {
+    /// If [`NormalConfig::player_plays_first`] is false, then we also start an AI move in the
+    /// background by calling [`send_move_after_delay`].
+    fn new_with_config(config: NormalConfig) -> Self {
         let (mv_tx, mv_rx) = mpsc::channel();
 
         let board = Board::new(config.player_shape.other());
@@ -133,7 +114,7 @@ impl TicTacToeApp {
 
     /// Update the board to reflect a cell being clicked.
     ///
-    /// This method uses [`active_shape`](TicTacToeApp::active_shape) as the shape to place in the cell.
+    /// This method uses [`active_shape`](NormalTTTApp::active_shape) as the shape to place in the cell.
     fn update_cell(&mut self, x: usize, y: usize) {
         if x > 2 || y > 2 {
             return;
@@ -146,9 +127,20 @@ impl TicTacToeApp {
     }
 }
 
-impl eframe::App for TicTacToeApp {
+impl TTTVariantApp for NormalTTTApp {
+    fn new_app(storage: Option<&dyn eframe::Storage>) -> Self
+    where
+        Self: Sized,
+    {
+        let config = storage.map_or_else(NormalConfig::default, |storage| {
+            eframe::get_value(storage, "normal_config").unwrap_or_default()
+        });
+
+        Self::new_with_config(config)
+    }
+
     /// Show the app itself.
-    fn update(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
+    fn show_ui(&mut self, ctx: &Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
             // Show the restart game and settings buttons
             ui.horizontal(|ui| {
@@ -194,40 +186,40 @@ impl eframe::App for TicTacToeApp {
         }
     }
 
-    fn save(&mut self, storage: &mut dyn eframe::Storage) {
-        eframe::set_value(storage, "config", &self.config);
+    fn save_config(&mut self, storage: &mut dyn eframe::Storage) {
+        eframe::set_value(storage, "normal_config", &self.config);
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::make_board;
-    use crate::Coord;
+    use crate::normal::test_utils::make_board;
+    use crate::normal::Coord;
 
     #[test]
     fn update_cell_test() {
         let map_1: Vec<(Coord, Board)> = vec![
-            ((0, 1), make_board!(E E E; X E E; E E E)),
-            ((2, 1), make_board!(E E E; X E O; E E E)),
-            ((0, 0), make_board!(X E E; X E O; E E E)),
-            ((2, 2), make_board!(X E E; X E O; E E O)),
-            ((2, 0), make_board!(X E X; X E O; E E O)),
-            ((0, 2), make_board!(X E X; X E O; O E O)),
+            ((0, 1), make_board!(_; X _ _; _)),
+            ((2, 1), make_board!(_; X _ O; _)),
+            ((0, 0), make_board!(X _ _; X _ O; _)),
+            ((2, 2), make_board!(X _ _; X _ O; _ _ O)),
+            ((2, 0), make_board!(X _ X; X _ O; _ _ O)),
+            ((0, 2), make_board!(X _ X; X _ O; O _ O)),
         ];
 
         let map_2: Vec<(Coord, Board)> = vec![
-            ((0, 3), make_board!(E E E; E E E; E E E)),
-            ((6, 3), make_board!(E E E; E E E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((1, 1), make_board!(E E E; E X E; E E E)),
-            ((2, 1), make_board!(E E E; E X O; E E E)),
+            ((0, 3), make_board!(_; _; _)),
+            ((6, 3), make_board!(_; _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((1, 1), make_board!(_; _ X _; _)),
+            ((2, 1), make_board!(_; _ X O; _)),
         ];
 
         for moves_map in [map_1, map_2] {
-            let mut app = TicTacToeApp::default();
+            let mut app = NormalTTTApp::default();
             assert_eq!(app.board, Board::default());
 
             for ((x, y), board) in moves_map {

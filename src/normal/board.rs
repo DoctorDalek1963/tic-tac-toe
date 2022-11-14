@@ -1,53 +1,18 @@
 //! This module handles the board and the AI player.
 
-use crate::Coord;
+use super::Coord;
+use crate::shared::{
+    self,
+    board::{CellShape, WinnerError},
+};
 use itertools::Itertools;
 use rand::seq::SliceRandom;
-use serde::{Deserialize, Serialize};
-use thiserror::Error;
 
 #[cfg(not(target_arch = "wasm32"))]
 use rayon::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 use crate::fake_par_iter::VecParIter;
-
-/// An enum for the shape of a cell on the [`Board`].
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, Serialize, Deserialize)]
-pub enum CellShape {
-    X,
-    O,
-}
-
-impl CellShape {
-    /// Return the opposite of the current shape.
-    #[must_use]
-    pub fn other(&self) -> Self {
-        match self {
-            Self::X => Self::O,
-            Self::O => Self::X,
-        }
-    }
-}
-
-/// A possible error that could occur when trying to find a winner,
-#[derive(Debug, Error, PartialEq)]
-pub enum WinnerError {
-    /// Neither player has won, but the board is not full, so a win could occur.
-    #[error("Neither player has won yet")]
-    NoWinnerYet,
-
-    /// The board is full and neither player won.
-    #[error("Board is full but no-one has won")]
-    BoardFullNoWinner,
-
-    /// Both players have won.
-    ///
-    /// This state should never be achievable in normal play, but we need to handle the case where
-    /// multiple winning triplets are found in [`Board::get_winner`].
-    #[error("Both players have won")]
-    MultipleWinners,
-}
 
 /// A struct to represent a simple tic-tac-toe board.
 #[derive(Clone, Debug, PartialEq)]
@@ -79,85 +44,11 @@ impl Board {
         }
     }
 
-    /// Check if the board is full.
-    ///
-    /// This method does not check for a winner. See [`get_winner`](Board::get_winner).
-    fn is_board_full(&self) -> bool {
-        self.cells
-            .iter()
-            .flatten()
-            .filter(|cell| cell.is_some())
-            .count()
-            == 9
-    }
-
-    /// Return the winner in the current board position, or a variant of [`WinnerError`] if there is no winner.
-    ///
-    /// # Errors
-    ///
-    /// - [`NoWinnerYet`](WinnerError::NoWinnerYet): There is currently no winner, but there could be
-    /// in the future.
-    /// - [`BoardFullNoWinner`](WinnerError::BoardFullNoWinner): The board is full and neither player
-    /// has won.
-    /// - [`MultipleWinners`](WinnerError::MultipleWinners): Both players have won. This should never
-    /// be achievable in normal play.
-    pub fn get_winner(&self) -> Result<(CellShape, [Coord; 3]), WinnerError> {
-        // This closure returns a tuple with the shapes and the actual coordinates
-        let get_triplet = |coords: [Coord; 3]| -> ([Option<CellShape>; 3], [Coord; 3]) {
-            let get_cell = |coord: Coord| -> Option<CellShape> { self.cells[coord.0][coord.1] };
-
-            (
-                [
-                    get_cell(coords[0]),
-                    get_cell(coords[1]),
-                    get_cell(coords[2]),
-                ],
-                coords,
-            )
-        };
-
-        // Each element of this array is a tuple of the shapes and the actual coordinates
-        let triplets: [([Option<CellShape>; 3], [Coord; 3]); 8] = [
-            get_triplet([(0, 0), (0, 1), (0, 2)]), // Column 0
-            get_triplet([(1, 0), (1, 1), (1, 2)]), // Column 1
-            get_triplet([(2, 0), (2, 1), (2, 2)]), // Column 2
-            get_triplet([(0, 0), (1, 0), (2, 0)]), // Row 0
-            get_triplet([(0, 1), (1, 1), (2, 1)]), // Row 1
-            get_triplet([(0, 2), (1, 2), (2, 2)]), // Row 2
-            get_triplet([(0, 2), (1, 1), (2, 0)]), // +ve diagonal
-            get_triplet([(0, 0), (1, 1), (2, 2)]), // -ve diagonal
-        ];
-
-        let states: Vec<(CellShape, [Coord; 3])> = triplets
-            .iter()
-            .filter_map(
-                // Map the arrays into an Option<CellShape> representing their win
-                |&(shapes, coords)| match shapes {
-                    [Some(CellShape::X), Some(CellShape::X), Some(CellShape::X)] => {
-                        Some((CellShape::X, coords))
-                    }
-                    [Some(CellShape::O), Some(CellShape::O), Some(CellShape::O)] => {
-                        Some((CellShape::O, coords))
-                    }
-                    _ => None,
-                },
-            )
-            .collect::<Vec<_>>();
-
-        if states.len() > 1 {
-            Err(WinnerError::MultipleWinners)
-        } else {
-            match states.get(0) {
-                None => {
-                    if self.is_board_full() {
-                        Err(WinnerError::BoardFullNoWinner)
-                    } else {
-                        Err(WinnerError::NoWinnerYet)
-                    }
-                }
-                Some(x) => Ok(*x),
-            }
-        }
+    /// Return the winner of the current board. See
+    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
+    #[inline(always)]
+    pub fn get_winner(&self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
+        shared::board::get_winner(self.cells)
     }
 
     /// Return a vector of the coordinates of empty cells in the board.
@@ -273,61 +164,20 @@ impl Default for Board {
     }
 }
 
+#[cfg(any(test, feature = "bench"))]
+impl Board {
+    pub fn with_cell_array(cells: [[Option<CellShape>; 3]; 3]) -> Self {
+        Self {
+            cells,
+            ..Default::default()
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::test_utils::make_board;
-
-    #[test]
-    fn get_winner_test() {
-        let board = Board::default();
-        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
-
-        // X| |
-        //  |O|
-        //  | |
-        let board = make_board!(X E E; E O E; E E E);
-        assert_eq!(board.get_winner(), Err(WinnerError::NoWinnerYet));
-
-        // X|O|X
-        //  |X|O
-        //  |O|X
-        let board = make_board!(X O X; E X O; E O X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::X, [(0, 0), (1, 1), (2, 2)]))
-        );
-
-        // O|X|O
-        // X|O|X
-        // O|X|X
-        let board = make_board!(O X O; X O X; O X X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::O, [(0, 2), (1, 1), (2, 0)]))
-        );
-
-        // O|X|O
-        // O|O|X
-        // X|X|X
-        let board = make_board!(O X O; O O X; X X X);
-        assert_eq!(
-            board.get_winner(),
-            Ok((CellShape::X, [(0, 2), (1, 2), (2, 2)]))
-        );
-
-        // X|O|O
-        // O|X|X
-        // X|X|O
-        let board = make_board!(X O O; O X X; X X O);
-        assert_eq!(board.get_winner(), Err(WinnerError::BoardFullNoWinner));
-
-        // X|X|X
-        // O|O|O
-        //  | |
-        let board = make_board!(X X X; O O O; E E E);
-        assert_eq!(board.get_winner(), Err(WinnerError::MultipleWinners));
-    }
+    use crate::normal::test_utils::make_board;
 
     #[test]
     fn get_empty_cells_test() {
@@ -350,7 +200,7 @@ mod tests {
         // X|O|X
         //  |X|O
         //  |O|X
-        let board = make_board!(X O X; E X O; E O X);
+        let board = make_board!(X O X; _ X O; _ O X);
         assert_eq!(board.empty_cells(), vec![(0, 1), (0, 2)]);
 
         // O|X|O
@@ -368,7 +218,7 @@ mod tests {
         // X|X|X
         // O|O|O
         //  | |
-        let board = make_board!(X X X; O O O; E E E);
+        let board = make_board!(X X X; O O O; _);
         assert_eq!(board.empty_cells(), vec![(0, 2), (1, 2), (2, 2)]);
     }
 
@@ -377,7 +227,7 @@ mod tests {
         // X|O|
         //  |X|O
         // O| |X
-        let board = make_board!(X O E; E X O; O E X);
+        let board = make_board!(X O _; _ X O; O _ X);
         // Whoever plays in this position, it's bad because the player (X) has won
         assert_eq!(board.evaluate_position(CellShape::X), -100);
         assert_eq!(board.evaluate_position(CellShape::O), -100);
@@ -385,7 +235,7 @@ mod tests {
         // O|X|
         //  |O|X
         // X| |O
-        let board = make_board!(O X E; E O X; X E O);
+        let board = make_board!(O X _; _ O X; X _ O);
         // Whoever plays in this position, it's good because the AI (O) has won
         assert_eq!(board.evaluate_position(CellShape::X), 100);
         assert_eq!(board.evaluate_position(CellShape::O), 100);
@@ -393,7 +243,7 @@ mod tests {
         // X|O|
         // X|O|O
         // X|O|
-        let board = make_board!(X O E; X O O; X O E);
+        let board = make_board!(X O _; X O O; X O _);
         // Multiple winners is a draw
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 0);
@@ -401,20 +251,20 @@ mod tests {
         // X|O|
         //  |X|O
         //  | |
-        let board = make_board!(X O E; E X E; E E E);
+        let board = make_board!(X O _; _ X _; _);
         assert_eq!(board.evaluate_position(CellShape::X), -90);
 
         // X|O|X
         // X|X|O
         // O| |O
-        let board = make_board!(X O X; X X O; O E O);
+        let board = make_board!(X O X; X X O; O _ O);
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 90);
 
         // X|O|X
         //  |X|O
         // O|X|O
-        let board = make_board!(X O X; E X O; O X O);
+        let board = make_board!(X O X; _ X O; O X O);
         assert_eq!(board.evaluate_position(CellShape::X), 0);
         assert_eq!(board.evaluate_position(CellShape::O), 0);
     }
@@ -424,31 +274,31 @@ mod tests {
         //  | |X
         //  |X|O
         //  | |
-        let board = make_board!(E E X; E X O; E E E);
+        let board = make_board!(_ _ X; _ X O; _);
         assert_eq!(board.generate_ai_move(), Some((0, 2)));
 
         // X|O|X
         // X|O|
         //  | |
-        let board = make_board!(X O X; X O E; E E E);
+        let board = make_board!(X O X; X O _; _);
         assert_eq!(board.generate_ai_move(), Some((1, 2)));
 
         //  | |O
         //  |X|
         //  | |X
-        let board = make_board!(E E O; E X E; E E X);
+        let board = make_board!(_ _ O; _ X _; _ _ X);
         assert_eq!(board.generate_ai_move(), Some((0, 0)));
 
         // O| |O
         //  |X|
         // X| |X
-        let board = make_board!(O E O; E X E; X E X);
+        let board = make_board!(O _ O; _ X _; X _ X);
         assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O| |O
         //  |X|
         //  |X|X
-        let board = make_board!(O E O; E X E; E X X);
+        let board = make_board!(O _ O; _ X _; _ X X);
         assert_eq!(board.generate_ai_move(), Some((1, 0)));
 
         // O|X|X
