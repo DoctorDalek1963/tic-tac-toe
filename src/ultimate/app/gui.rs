@@ -157,7 +157,8 @@ impl UltimateTTTApp {
                     {
                         send_move_when_ready(
                             self.global_board.clone(),
-                            self.config.max_mcts_iterations,
+                            self.config.max_mcts_expansions,
+                            self.config.mcts_playouts,
                             self.mv_tx.clone(),
                         );
                         self.waiting_on_move = true;

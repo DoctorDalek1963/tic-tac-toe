@@ -11,6 +11,7 @@ name = "tictactoe"
 path = "src/lib.rs"
 
 [dependencies]
+cfg-if = "1.0.0"
 eframe = { version = "0.19.0", features = ["dark-light", "persistence"] }
 itertools = "0.10.5"
 rand = "0.8.5"

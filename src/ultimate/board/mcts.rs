@@ -116,7 +116,7 @@ impl Node {
     /// If this board state results in a win, loss, or draw, or if there are no legal moves, then
     /// no expansion will happen and no children will be created. Otherwise, we will create a child
     /// node for each legal move.
-    fn expand(node: &Rc<Node>) {
+    fn expand(node: &Rc<Node>, playouts: u8) {
         let legal_moves = node.board.borrow().legal_moves();
         if node.board.borrow_mut().get_winner() != Err(WinnerError::NoWinnerYet)
             || legal_moves.is_empty()
@@ -141,7 +141,10 @@ impl Node {
                 children: RefCell::new(vec![]),
             };
 
-            node.playout_and_backpropagate();
+            for _ in 0..playouts {
+                node.playout_and_backpropagate();
+            }
+
             children.push(Rc::new(node));
         }
     }
@@ -260,17 +263,18 @@ impl GlobalBoard {
         self.legal_moves().choose(&mut thread_rng()).copied()
     }
 
-    fn do_mcts(&self, iterations: u16) -> Option<GlobalCoord> {
+    /// Do the MCTS algorithm by creating a tree, selecting, expanding, playing out, and backpropagating.
+    fn do_mcts(&self, max_expansions: u16, playouts: u8) -> Option<GlobalCoord> {
         if self.legal_moves().is_empty() {
             return None;
         }
 
         let root = &Rc::new(Node::make_root(self, self.ai_shape));
-        Node::expand(root);
+        Node::expand(root, playouts);
         let mut next = Node::select_node(root);
 
-        for _ in 1..iterations {
-            Node::expand(&next);
+        for _ in 1..max_expansions {
+            Node::expand(&next, playouts);
             next = Node::select_node(root);
         }
 
@@ -282,7 +286,7 @@ impl GlobalBoard {
     }
 
     /// Return the AI-chosen optimal move, which could be none if the board is full.
-    pub fn generate_ai_move(&self, max_mcts_iterations: u16) -> Option<GlobalCoord> {
+    pub fn generate_ai_move(&self, max_mcts_expansions: u16, playouts: u8) -> Option<GlobalCoord> {
         let legal_moves = self.legal_moves();
 
         match legal_moves.len() {
@@ -300,7 +304,7 @@ impl GlobalBoard {
                     }
                 }
 
-                self.do_mcts(max_mcts_iterations)
+                self.do_mcts(max_mcts_expansions, playouts)
             }
         }
     }
@@ -426,7 +430,7 @@ mod tests {
         #[test]
         fn expand_test() {
             let node_rc = get_test_root_node();
-            Node::expand(&node_rc);
+            Node::expand(&node_rc, 1);
 
             // 7 possible moves
             assert_eq!(node_rc.children.borrow().len(), 7);
@@ -442,7 +446,7 @@ mod tests {
         #[test]
         fn backpropagate_test() {
             let node_rc = get_test_root_node();
-            Node::expand(&node_rc);
+            Node::expand(&node_rc, 1);
 
             // 7 playouts
             assert_eq!(node_rc.wins_vs_playouts.borrow().1, 7);

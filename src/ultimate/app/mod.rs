@@ -14,6 +14,7 @@ use std::sync::mpsc;
 fn send_move_when_ready(
     global_board: GlobalBoard,
     max_iters: u16,
+    playouts: u8,
     tx: mpsc::Sender<Option<GlobalCoord>>,
 ) {
     use std::{
@@ -23,7 +24,7 @@ fn send_move_when_ready(
 
     thread::spawn(move || {
         let start = Instant::now();
-        let mv = global_board.generate_ai_move(max_iters);
+        let mv = global_board.generate_ai_move(max_iters, playouts);
         thread::sleep(Duration::saturating_sub(
             Duration::from_millis(750),
             start.elapsed(),
@@ -37,6 +38,7 @@ fn send_move_when_ready(
 fn send_move_when_ready(
     global_board: GlobalBoard,
     max_iters: u16,
+    playouts: u8,
     tx: mpsc::Sender<Option<GlobalCoord>>,
 ) {
     use gloo_timers::callback::Timeout;
@@ -47,7 +49,7 @@ fn send_move_when_ready(
     Timeout::new(
         u32::saturating_sub(750, (Date::now() - start) as u32),
         move || {
-            let _ = tx.send(global_board.generate_ai_move(max_iters));
+            let _ = tx.send(global_board.generate_ai_move(max_iters, playouts));
         },
     )
     .forget();
@@ -101,7 +103,8 @@ impl UltimateTTTApp {
         let active_shape = if waiting_on_move && config.playing_ai {
             send_move_when_ready(
                 global_board.clone(),
-                config.max_mcts_iterations,
+                config.max_mcts_expansions,
+                config.mcts_playouts,
                 mv_tx.clone(),
             );
             config.player_shape.other()

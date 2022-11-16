@@ -65,7 +65,8 @@ mod ultimate {
     use criterion::Criterion;
     use tictactoe::ultimate::{board::GlobalBoard, test_utils::make_global_board};
 
-    const ARRAY_OF_MAX_ITERATIONS: [u16; 3] = [1000, 5000, 10_000];
+    const ARRAY_OF_MAX_EXPANSIONS: [u16; 2] = [1000, 5000];
+    const ARRAY_OF_PLAYOUTS: [u8; 2] = [1, 5];
 
     pub mod early_game {
         use super::*;
@@ -98,14 +99,19 @@ mod ultimate {
             let mut group = c.benchmark_group("ultimate::early_game");
             group.sample_size(10);
 
-            for i in ARRAY_OF_MAX_ITERATIONS {
-                group.bench_function(&format!("generate_ai_move({i})"), |b| {
-                    b.iter(|| {
-                        for global_board in &global_board_states {
-                            global_board.generate_ai_move(i);
-                        }
-                    })
-                });
+            for expansions in ARRAY_OF_MAX_EXPANSIONS {
+                for playouts in ARRAY_OF_PLAYOUTS {
+                    group.bench_function(
+                        &format!("generate_ai_move({expansions}, {playouts})"),
+                        |b| {
+                            b.iter(|| {
+                                for global_board in &global_board_states {
+                                    global_board.generate_ai_move(expansions, playouts);
+                                }
+                            })
+                        },
+                    );
+                }
             }
         }
     }
@@ -140,14 +146,19 @@ mod ultimate {
             let global_board_states = get_global_board_states();
             let mut group = c.benchmark_group("ultimate::late_game");
 
-            for i in ARRAY_OF_MAX_ITERATIONS {
-                group.bench_function(&format!("generate_ai_move({i})"), |b| {
-                    b.iter(|| {
-                        for global_board in &global_board_states {
-                            global_board.generate_ai_move(i);
-                        }
-                    })
-                });
+            for expansions in ARRAY_OF_MAX_EXPANSIONS {
+                for playouts in ARRAY_OF_PLAYOUTS {
+                    group.bench_function(
+                        &format!("generate_ai_move({expansions}, {playouts})"),
+                        |b| {
+                            b.iter(|| {
+                                for global_board in &global_board_states {
+                                    global_board.generate_ai_move(expansions, playouts);
+                                }
+                            })
+                        },
+                    );
+                }
             }
         }
     }
