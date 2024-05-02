@@ -1,0 +1,13 @@
+name: Check the Nix flake
+
+on: push
+
+jobs:
+  check-flake:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nixbuild/nix-quick-install-action@v27
+
+      - name: Check the flake
+        run: nix flake check --print-build-logs
