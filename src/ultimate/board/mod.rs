@@ -69,8 +69,7 @@ impl LocalBoard {
         shared::board::is_board_full(self.cells)
     }
 
-    /// Return the winner of the current board. See
-    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
+    /// Return the winner of the current board. See [`shared::board::get_winner`].
     pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         match self.winner {
             None => {
@@ -169,8 +168,7 @@ impl GlobalBoard {
         Ok(())
     }
 
-    /// Return the winner of the global board. See
-    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
+    /// Return the winner of the global board. See [`shared::board::get_winner`].
     pub fn get_winner(&mut self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         let cells: [[Option<CellShape>; 3]; 3] = self.local_boards.map(|arr| {
             arr.map(|mut board| board.get_winner().map_or(None, |(shape, _)| Some(shape)))

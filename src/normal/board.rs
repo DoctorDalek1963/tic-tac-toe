@@ -44,8 +44,7 @@ impl Board {
         }
     }
 
-    /// Return the winner of the current board. See
-    /// [`shared::board::get_winner`](crate::shared::board::get_winner).
+    /// Return the winner of the current board. See [`shared::board::get_winner`].
     #[inline(always)]
     pub fn get_winner(&self) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
         shared::board::get_winner(self.cells)

@@ -14,7 +14,7 @@ use std::sync::mpsc;
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
-fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
+pub fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
     use std::{
         thread,
         time::{Duration, Instant},
@@ -30,7 +30,7 @@ fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(target_arch = "wasm32")]
-fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
+pub fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
     use stdweb::web::Date;
 
     let start = Date::now(); // millis

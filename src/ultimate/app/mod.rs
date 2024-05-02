@@ -11,7 +11,7 @@ use std::sync::mpsc;
 
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(not(target_arch = "wasm32"))]
-fn send_move_when_ready(
+pub fn send_move_when_ready(
     global_board: GlobalBoard,
     max_iters: u16,
     playouts: u8,
@@ -35,7 +35,7 @@ fn send_move_when_ready(
 
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(target_arch = "wasm32")]
-fn send_move_when_ready(
+pub fn send_move_when_ready(
     global_board: GlobalBoard,
     max_iters: u16,
     playouts: u8,
@@ -93,7 +93,7 @@ impl UltimateTTTApp {
     /// Create a new app with the given config.
     ///
     /// If [`UltimateConfig::player_plays_first`] is false, then we also start an AI move in the
-    /// background by calling [`send_move_after_delay`].
+    /// background by calling [`send_move_when_ready`].
     fn new_with_config(config: UltimateConfig) -> Self {
         let (mv_tx, mv_rx) = mpsc::channel();
 
