@@ -104,7 +104,10 @@
                 extensions = ["rust-analyzer" "rust-src" "rust-std"];
               })
               pkgs.cargo-nextest
+              pkgs.just
             ]
+            ++ commonArgsBuildInputs
+            ++ commonArgsNativeBuildInputs
             ++ graphicalBuildInputs;
           shellHook = ''
             ${config.pre-commit.installationScript}
@@ -134,6 +137,13 @@
 
         checks = {
           inherit (packages) native web doc;
+
+          bench = craneLib.mkCargoDerivation (commonArgs
+            // {
+              inherit cargoArtifacts;
+              pnameSuffix = "-bench";
+              buildPhaseCargoCommand = "cargo bench --features bench";
+            });
 
           clippy = craneLib.cargoClippy (commonArgs
             // {
