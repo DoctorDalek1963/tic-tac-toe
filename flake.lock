@@ -127,22 +127,6 @@
         "type": "github"
       }
     },
-    "nixpkgs-for-wasm-bindgen": {
-      "locked": {
-        "lastModified": 1675277990,
-        "narHash": "sha256-Dz01WTlEferjl73HQgZt4vxNCsQwprVnLzPZarWTlvQ=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e09433928184a29509f693a77d40f015effae925",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "e09433928184a29509f693a77d40f015effae925",
-        "type": "github"
-      }
-    },
     "nixpkgs-lib": {
       "locked": {
         "dir": "lib",
@@ -206,7 +190,6 @@
         "crane": "crane",
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
-        "nixpkgs-for-wasm-bindgen": "nixpkgs-for-wasm-bindgen",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-overlay": "rust-overlay"
       }
