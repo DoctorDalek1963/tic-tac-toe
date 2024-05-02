@@ -113,17 +113,33 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1714531828,
-        "narHash": "sha256-ILsf3bdY/hNNI/Hu5bSt2/KbmHaAVhBbNUOdGztTHEg=",
+        "lastModified": 1714253743,
+        "narHash": "sha256-mdTQw2XlariysyScCv2tTE45QSU9v/ezLcHJ22f0Nxc=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "0638fe2715d998fa81d173aad264eb671ce2ebc1",
+        "rev": "58a1abdbae3217ca6b702f03d3b35125d88a2994",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.11",
+        "ref": "nixos-unstable",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs-for-wasm-bindgen": {
+      "locked": {
+        "lastModified": 1675277990,
+        "narHash": "sha256-Dz01WTlEferjl73HQgZt4vxNCsQwprVnLzPZarWTlvQ=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e09433928184a29509f693a77d40f015effae925",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "e09433928184a29509f693a77d40f015effae925",
         "type": "github"
       }
     },
@@ -190,6 +206,7 @@
         "crane": "crane",
         "flake-parts": "flake-parts",
         "nixpkgs": "nixpkgs",
+        "nixpkgs-for-wasm-bindgen": "nixpkgs-for-wasm-bindgen",
         "pre-commit-hooks": "pre-commit-hooks",
         "rust-overlay": "rust-overlay"
       }

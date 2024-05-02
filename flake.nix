@@ -2,8 +2,11 @@
   description = "An implementation of Tic-tac-toe and Ultimate Tic-tac-toe in Rust with egui";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
+
+    # We need wasm-bindgen-cli version 0.2.83 exactly
+    nixpkgs-for-wasm-bindgen.url = "github:NixOS/nixpkgs/e09433928184a29509f693a77d40f015effae925";
 
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";
@@ -36,6 +39,8 @@
           inherit system;
           overlays = [(import inputs.rust-overlay)];
         };
+
+        pkgs-for-wasm-bindgen = inputs.nixpkgs-for-wasm-bindgen.legacyPackages.${system};
 
         rustToolchain = pkgs.rust-bin.stable.latest.default;
 
@@ -160,20 +165,20 @@
               '';
             });
 
-          # web = let
-          #   rustToolchainWasm = rustToolchain.override {
-          #     targets = ["wasm32-unknown-unknown"];
-          #   };
-          #   craneLibTrunk =
-          #     ((inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm)
-          #     .overrideScope (_: _: {inherit (pkgs) wasm-bindgen-cli;});
-          # in
-          #   craneLibTrunk.buildTrunkPackage (individualCrateArgs
-          #     // {
-          #       trunkIndexPath = "index.html";
-          #       CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
-          #       inherit (pkgs) wasm-bindgen-cli;
-          #     });
+          web = let
+            rustToolchainWasm = rustToolchain.override {
+              targets = ["wasm32-unknown-unknown"];
+            };
+            craneLibTrunk =
+              ((inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm)
+              .overrideScope (_: _: {inherit (pkgs-for-wasm-bindgen) wasm-bindgen-cli;});
+          in
+            craneLibTrunk.buildTrunkPackage (individualCrateArgs
+              // {
+                trunkIndexPath = "index.html";
+                CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
+                inherit (pkgs-for-wasm-bindgen) wasm-bindgen-cli;
+              });
 
           doc = craneLib.cargoDoc (commonArgs
             // {
