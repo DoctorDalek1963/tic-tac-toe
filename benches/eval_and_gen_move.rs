@@ -1,7 +1,5 @@
 #![cfg(feature = "bench")]
 
-use criterion::{criterion_group, criterion_main};
-
 mod normal {
     use criterion::Criterion;
     use tictactoe::{
@@ -164,10 +162,10 @@ mod ultimate {
     }
 }
 
-criterion_group!(
+criterion::criterion_group!(
     benches,
     normal::bench_eval_and_move,
     ultimate::early_game::bench_move,
     ultimate::late_game::bench_move,
 );
-criterion_main!(benches);
+criterion::criterion_main!(benches);

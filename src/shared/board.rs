@@ -65,23 +65,23 @@ pub fn is_board_full(cells: [[Option<CellShape>; 3]; 3]) -> bool {
 pub fn get_winner(
     cells: [[Option<CellShape>; 3]; 3],
 ) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
-    // This closure returns a tuple with the shapes and the actual coordinates
-    let get_triplet =
-        |coords: [(usize, usize); 3]| -> ([Option<CellShape>; 3], [(usize, usize); 3]) {
-            let get_cell = |coord: (usize, usize)| -> Option<CellShape> { cells[coord.0][coord.1] };
+    /// A triplet is a tuple that pairs the shapes with the actual coordinates.
+    type Triplet = ([Option<CellShape>; 3], [(usize, usize); 3]);
 
-            (
-                [
-                    get_cell(coords[0]),
-                    get_cell(coords[1]),
-                    get_cell(coords[2]),
-                ],
-                coords,
-            )
-        };
+    let get_triplet = |coords: [(usize, usize); 3]| -> Triplet {
+        let get_cell = |coord: (usize, usize)| -> Option<CellShape> { cells[coord.0][coord.1] };
 
-    // Each element of this array is a tuple of the shapes and the actual coordinates
-    let triplets: [([Option<CellShape>; 3], [(usize, usize); 3]); 8] = [
+        (
+            [
+                get_cell(coords[0]),
+                get_cell(coords[1]),
+                get_cell(coords[2]),
+            ],
+            coords,
+        )
+    };
+
+    let triplets: [Triplet; 8] = [
         get_triplet([(0, 0), (0, 1), (0, 2)]), // Column 0
         get_triplet([(1, 0), (1, 1), (1, 2)]), // Column 1
         get_triplet([(2, 0), (2, 1), (2, 2)]), // Column 2
@@ -112,7 +112,7 @@ pub fn get_winner(
     if states.len() > 1 {
         Err(WinnerError::MultipleWinners)
     } else {
-        match states.get(0) {
+        match states.first() {
             None => {
                 if is_board_full(cells) {
                     Err(WinnerError::BoardFullNoWinner)

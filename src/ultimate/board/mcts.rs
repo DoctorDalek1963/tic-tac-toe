@@ -83,7 +83,7 @@ impl Node {
 
     /// Find the best child of the given node by comparing UCT values.
     fn best_child_by_uct(node: &Rc<Node>) -> Option<Rc<Node>> {
-        const MSG: &'static str =
+        const MSG: &str =
             "We should never try to compute the UCT of the root node, so it should never be none";
 
         let children = node.children.borrow();
@@ -94,7 +94,7 @@ impl Node {
                     .expect(MSG)
                     .total_cmp(&c2.compute_uct().expect(MSG))
             })
-            .map(Rc::clone)
+            .cloned()
     }
 
     /// Select the next node to expand and return an [`Rc`] to it.
@@ -166,10 +166,7 @@ impl Node {
             shape = shape.other();
         }
 
-        match board.get_winner() {
-            Ok((winning_shape, _)) if winning_shape == self.board.borrow().ai_shape => true,
-            _ => false,
-        }
+        matches!(board.get_winner(), Ok((winning_shape, _)) if winning_shape == self.board.borrow().ai_shape)
     }
 
     /// Propagate a win or loss up the game tree to the root node.
@@ -291,7 +288,7 @@ impl GlobalBoard {
 
         match legal_moves.len() {
             0 => None,
-            1 => legal_moves.get(0).copied(),
+            1 => legal_moves.first().copied(),
             _ => {
                 for mv in legal_moves {
                     let mut board = self.clone();
