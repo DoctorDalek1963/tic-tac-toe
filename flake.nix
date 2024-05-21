@@ -34,13 +34,16 @@
       }: let
         pkgs = import inputs.nixpkgs {
           inherit system;
-          overlays = [(import inputs.rust-overlay)];
-        };
-
-        wasm-bindgen-cli = pkgs.wasm-bindgen-cli.override {
-          version = "0.2.83";
-          hash = "sha256-+PWxeRL5MkIfJtfN3/DjaDlqRgBgWZMa6dBt1Q+lpd0=";
-          cargoHash = "sha256-GwLeA6xLt7I+NzRaqjwVpt1pzRex1/snq30DPv4FR+g=";
+          overlays = [
+            (import inputs.rust-overlay)
+            (_final: prev: {
+              wasm-bindgen-cli = prev.wasm-bindgen-cli.override {
+                version = "0.2.83";
+                hash = "sha256-+PWxeRL5MkIfJtfN3/DjaDlqRgBgWZMa6dBt1Q+lpd0=";
+                cargoHash = "sha256-GwLeA6xLt7I+NzRaqjwVpt1pzRex1/snq30DPv4FR+g=";
+              };
+            })
+          ];
         };
 
         rustToolchain = pkgs.rust-bin.stable.latest.default;
@@ -182,13 +185,13 @@
             };
             craneLibTrunk =
               ((inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm)
-              .overrideScope (_: _: {inherit wasm-bindgen-cli;});
+              .overrideScope (_: _: {inherit (pkgs) wasm-bindgen-cli;});
           in
             craneLibTrunk.buildTrunkPackage (individualCrateArgs
               // {
                 trunkIndexPath = "index.html";
                 CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
-                inherit wasm-bindgen-cli;
+                inherit (pkgs) wasm-bindgen-cli;
               });
 
           doc = craneLib.cargoDoc (commonArgs
