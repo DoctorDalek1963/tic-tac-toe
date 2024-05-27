@@ -7,16 +7,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1716317235,
-        "narHash": "sha256-0qkpF5fp3bejFZXX5leQWrK+WbApffM93wTk0Nraxmg=",
-        "owner": "DoctorDalek1963",
+        "lastModified": 1716745752,
+        "narHash": "sha256-8K1R9Yg4r08rYk86Yq+lu3E9L3uRUb4xMqYHgl0VGS0=",
+        "owner": "ipetkov",
         "repo": "crane",
-        "rev": "8847cdcd31a026003fdcd2f260720cfafa949f74",
+        "rev": "19ca94ec2d288de334ae932107816b4a97736cd8",
         "type": "github"
       },
       "original": {
-        "owner": "DoctorDalek1963",
-        "ref": "parallelize-removeReferencesToVendoredSources",
+        "owner": "ipetkov",
         "repo": "crane",
         "type": "github"
       }
