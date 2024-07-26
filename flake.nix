@@ -106,6 +106,7 @@
             [
               (rustToolchain.override {
                 extensions = ["rust-analyzer" "rust-src" "rust-std"];
+                targets = ["wasm32-unknown-unknown"];
               })
               pkgs.cargo-nextest
               pkgs.just
