@@ -47,8 +47,13 @@
         };
 
         rustToolchain = pkgs.rust-bin.stable.latest.default;
+        rustToolchainWasm = rustToolchain.override {
+          targets = ["wasm32-unknown-unknown"];
+        };
 
         craneLib = (inputs.crane.mkLib pkgs).overrideToolchain rustToolchain;
+        craneLibWasm = (inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm;
+
         src = pkgs.lib.cleanSourceWith {
           src = ./.;
           filter = path: type:
@@ -181,12 +186,7 @@
             });
 
           web = let
-            rustToolchainWasm = rustToolchain.override {
-              targets = ["wasm32-unknown-unknown"];
-            };
-            craneLibTrunk =
-              ((inputs.crane.mkLib pkgs).overrideToolchain rustToolchainWasm)
-              .overrideScope (_: _: {inherit (pkgs) wasm-bindgen-cli;});
+            craneLibTrunk = craneLibWasm.overrideScope (_: _: {inherit (pkgs) wasm-bindgen-cli;});
           in
             craneLibTrunk.buildTrunkPackage (individualCrateArgs
               // {
@@ -200,6 +200,14 @@
               inherit cargoArtifacts;
               cargoDocExtraArgs = "--no-deps --document-private-items --workspace";
               RUSTDOCFLAGS = "--deny warnings";
+            });
+
+          doc-web = craneLibWasm.cargoDoc (commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoDocExtraArgs = "--no-deps --document-private-items --workspace";
+              RUSTDOCFLAGS = "--deny warnings";
+              CARGO_BUILD_TARGET = "wasm32-unknown-unknown";
             });
         };
       };
