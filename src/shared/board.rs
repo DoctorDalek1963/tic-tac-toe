@@ -57,11 +57,11 @@ pub fn is_board_full(cells: [[Option<CellShape>; 3]; 3]) -> bool {
 /// # Errors
 ///
 /// - [`NoWinnerYet`](WinnerError::NoWinnerYet): There is currently no winner, but there could be
-/// in the future.
+///   in the future.
 /// - [`BoardFullNoWinner`](WinnerError::BoardFullNoWinner): The board is full and neither player
-/// has won.
+///   has won.
 /// - [`MultipleWinners`](WinnerError::MultipleWinners): Both players have won. This should never
-/// be achievable in normal play.
+///   be achievable in normal play.
 pub fn get_winner(
     cells: [[Option<CellShape>; 3]; 3],
 ) -> Result<(CellShape, [(usize, usize); 3]), WinnerError> {
