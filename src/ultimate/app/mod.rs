@@ -8,6 +8,7 @@ use super::{board::GlobalBoard, GlobalCoord};
 use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
 use eframe::{egui, epaint::Color32};
 use std::sync::mpsc;
+use web_time::{Duration, Instant};
 
 /// This method sends an AI-generated move down an `mpsc` channel when it's ready.
 #[cfg(not(target_arch = "wasm32"))]
@@ -17,10 +18,7 @@ pub fn send_move_when_ready(
     playouts: u8,
     tx: mpsc::Sender<Option<GlobalCoord>>,
 ) {
-    use std::{
-        thread,
-        time::{Duration, Instant},
-    };
+    use std::thread;
 
     thread::spawn(move || {
         let start = Instant::now();
@@ -41,15 +39,13 @@ pub fn send_move_when_ready(
     playouts: u8,
     tx: mpsc::Sender<Option<GlobalCoord>>,
 ) {
-    use gloo_timers::callback::Timeout;
-    use stdweb::web::Date;
+    let start = Instant::now();
 
-    let start = Date::now(); // millis
-
-    Timeout::new(
-        u32::saturating_sub(750, (Date::now() - start) as u32),
+    gloo_timers::callback::Timeout::new(
+        Duration::saturating_sub(Duration::from_millis(750), start.elapsed()).as_millis() as u32,
         move || {
-            let _ = tx.send(global_board.generate_ai_move(max_iters, playouts));
+            let mv = global_board.generate_ai_move(max_iters, playouts);
+            let _ = tx.send(mv);
         },
     )
     .forget();

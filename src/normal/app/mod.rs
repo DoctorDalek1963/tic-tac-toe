@@ -11,14 +11,12 @@ use eframe::{
     epaint::Color32,
 };
 use std::sync::mpsc;
+use web_time::{Duration, Instant};
 
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(not(target_arch = "wasm32"))]
 pub fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
-    use std::{
-        thread,
-        time::{Duration, Instant},
-    };
+    use std::thread;
 
     thread::spawn(move || {
         let start = Instant::now();
@@ -31,14 +29,15 @@ pub fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
 /// This method sends an AI-generated move down an `mpsc` channel after 200ms.
 #[cfg(target_arch = "wasm32")]
 pub fn send_move_after_delay(board: Board, tx: mpsc::Sender<Option<Coord>>) {
-    use stdweb::web::Date;
-
-    let start = Date::now(); // millis
+    let start = Instant::now();
     let mv = board.generate_ai_move();
 
-    gloo_timers::callback::Timeout::new((200. - (Date::now() - start)) as u32, move || {
-        let _ = tx.send(mv);
-    })
+    gloo_timers::callback::Timeout::new(
+        (Duration::from_millis(200) - start.elapsed()).as_millis() as u32,
+        move || {
+            let _ = tx.send(mv);
+        },
+    )
     .forget();
 }
 

@@ -2,7 +2,7 @@
   description = "An implementation of Tic-tac-toe and Ultimate Tic-tac-toe in Rust with egui";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
     flake-parts.url = "github:hercules-ci/flake-parts";
 
     pre-commit-hooks = {
@@ -14,10 +14,7 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    crane = {
-      url = "github:ipetkov/crane";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    crane.url = "github:ipetkov/crane";
   };
 
   outputs = inputs @ {flake-parts, ...}:
@@ -38,9 +35,9 @@
             (import inputs.rust-overlay)
             (_final: prev: {
               wasm-bindgen-cli = prev.wasm-bindgen-cli.override {
-                version = "0.2.83";
-                hash = "sha256-+PWxeRL5MkIfJtfN3/DjaDlqRgBgWZMa6dBt1Q+lpd0=";
-                cargoHash = "sha256-GwLeA6xLt7I+NzRaqjwVpt1pzRex1/snq30DPv4FR+g=";
+                version = "0.2.97";
+                hash = "sha256-DDUdJtjCrGxZV84QcytdxrmS5qvXD8Gcdq4OApj5ktI=";
+                cargoHash = "sha256-Zfc2aqG7Qi44dY2Jz1MCdpcL3lk8C/3dt7QiE0QlNhc=";
               };
             })
           ];
@@ -115,6 +112,8 @@
               })
               pkgs.cargo-nextest
               pkgs.just
+              pkgs.trunk
+              pkgs.wasm-bindgen-cli
             ]
             ++ commonArgsBuildInputs
             ++ commonArgsNativeBuildInputs
