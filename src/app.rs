@@ -4,9 +4,9 @@
 
 use crate::{normal::NormalTTTApp, shared::gui::centered_square_in_rect, ultimate::UltimateTTTApp};
 use eframe::{
+    Storage,
     egui::{self, Context, Ui},
     epaint::{Pos2, Rect},
-    Storage,
 };
 
 /// This trait represents some variant of tic-tac-toe, wrapped up in a GUI app.

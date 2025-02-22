@@ -3,8 +3,8 @@
 mod normal {
     use criterion::Criterion;
     use tictactoe::{
-        normal::{board::Board, test_utils::make_board},
         CellShape,
+        normal::{board::Board, test_utils::make_board},
     };
 
     /// Return an assortment of board states to benchmark against.
@@ -100,7 +100,7 @@ mod ultimate {
             for expansions in ARRAY_OF_MAX_EXPANSIONS {
                 for playouts in ARRAY_OF_PLAYOUTS {
                     group.bench_function(
-                        &format!("generate_ai_move({expansions}, {playouts})"),
+                        format!("generate_ai_move({expansions}, {playouts})"),
                         |b| {
                             b.iter(|| {
                                 for global_board in &global_board_states {
@@ -147,7 +147,7 @@ mod ultimate {
             for expansions in ARRAY_OF_MAX_EXPANSIONS {
                 for playouts in ARRAY_OF_PLAYOUTS {
                     group.bench_function(
-                        &format!("generate_ai_move({expansions}, {playouts})"),
+                        format!("generate_ai_move({expansions}, {playouts})"),
                         |b| {
                             b.iter(|| {
                                 for global_board in &global_board_states {

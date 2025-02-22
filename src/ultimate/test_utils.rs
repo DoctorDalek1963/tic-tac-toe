@@ -185,8 +185,8 @@ pub use {_make_local_board, _make_local_board_arrays, make_global_board};
 mod tests {
     use super::*;
     use crate::{
-        ultimate::board::{GlobalBoard, LocalBoard},
         CellShape,
+        ultimate::board::{GlobalBoard, LocalBoard},
     };
 
     #[test]

@@ -1,9 +1,9 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
-use super::{send_move_after_delay, NormalTTTApp};
+use super::{NormalTTTApp, send_move_after_delay};
 use crate::{
-    shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
     CellShape,
+    shared::gui::{centered_square_in_rect, draw_cellshape_in_rect, draw_winning_line_in_rect},
 };
 use eframe::{
     egui::{self, Context, Painter, Rect, Response, Sense, Shape, Ui},

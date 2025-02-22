@@ -4,8 +4,8 @@ mod config;
 mod gui;
 
 use self::config::NormalConfig;
-use super::{board::Board, Coord};
-use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
+use super::{Coord, board::Board};
+use crate::{CellShape, app::TTTVariantApp, shared::gui::centered_square_in_rect};
 use eframe::{
     egui::{self, Context},
     epaint::Color32,
@@ -193,8 +193,8 @@ impl TTTVariantApp for NormalTTTApp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::normal::test_utils::make_board;
     use crate::normal::Coord;
+    use crate::normal::test_utils::make_board;
 
     #[test]
     fn update_cell_test() {

@@ -1,6 +1,6 @@
 //! This module only exists to separate the long methods used for drawing the board and cells.
 
-use super::{send_move_when_ready, UltimateTTTApp};
+use super::{UltimateTTTApp, send_move_when_ready};
 use crate::{
     shared::{
         board::WinnerError,

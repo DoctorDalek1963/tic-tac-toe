@@ -4,8 +4,8 @@ mod config;
 mod gui;
 
 use self::config::UltimateConfig;
-use super::{board::GlobalBoard, GlobalCoord};
-use crate::{app::TTTVariantApp, shared::gui::centered_square_in_rect, CellShape};
+use super::{GlobalCoord, board::GlobalBoard};
+use crate::{CellShape, app::TTTVariantApp, shared::gui::centered_square_in_rect};
 use eframe::{egui, epaint::Color32};
 use std::sync::mpsc;
 use web_time::{Duration, Instant};

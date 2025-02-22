@@ -1,7 +1,7 @@
 //! This module provides functionality for an AI based on Monte Carlo tree search (MCTS).
 
 use super::GlobalBoard;
-use crate::{shared::board::WinnerError, ultimate::GlobalCoord, CellShape};
+use crate::{CellShape, shared::board::WinnerError, ultimate::GlobalCoord};
 use rand::{seq::SliceRandom, thread_rng};
 use std::{
     cell::RefCell,
